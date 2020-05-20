@@ -1,4 +1,6 @@
 HELMHOLTZ MARKETPLACE CEREBRUM
 ===================
 
-![](https://github.com/helmoltz-markeplace/helmoltz-cerebrum/workflows/CI/badge.svg)
+![CI](https://github.com/helmholtz-marketplace/helmholtz-cerebrum/workflows/CI/badge.svg)
+
+![CI](workflows/CI/badge.svg)
