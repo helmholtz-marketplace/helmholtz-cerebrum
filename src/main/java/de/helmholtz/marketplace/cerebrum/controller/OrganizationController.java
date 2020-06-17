@@ -2,53 +2,55 @@ package de.helmholtz.marketplace.cerebrum.controller;
 
 import de.helmholtz.marketplace.cerebrum.entities.Organization;
 import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import reactor.util.annotation.Nullable;
+
+import java.util.Iterator;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("${spring.data.rest.base-path}")
+@RequestMapping("${spring.data.rest.base-path}/organizations")
 public class OrganizationController {
 
     private final OrganizationRepository organizationRepository;
 
-    @Autowired
     public OrganizationController(OrganizationRepository organizationRepository) {
         this.organizationRepository = organizationRepository;
     }
 
-    @RequestMapping(
-            method = RequestMethod.GET,
-            path = "/organization",
+    @GetMapping(
+            path = "",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Iterable<Organization> getOrganizations() {
-        return organizationRepository.findAll();
+    public Iterable<Organization> getOrganizations(@RequestParam @Nullable Integer page, @RequestParam @Nullable Integer size) {
+        if (page != null && size != null) {
+            return organizationRepository.findAll(PageRequest.of(page, size));
+        } else {
+            return organizationRepository.findAll();
+        }
     }
 
-    @RequestMapping(
-            method = RequestMethod.GET,
-            path = "/organization/ol",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public Iterable<Organization> getOrganizationsLimitOffset(@RequestParam Integer offset, @RequestParam Integer limit) {
-        return organizationRepository.getOrganizationsLimitOffset(offset, limit);
-    }
-
-    @RequestMapping(
-            method = RequestMethod.GET,
-            path = "/organization/{id}",
+    @GetMapping(
+            path = "{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Optional<Organization> getOrganization(@PathVariable Long id) {
         return organizationRepository.findById(id);
     }
 
-    @RequestMapping(
-            method = RequestMethod.POST,
-            path = "/organization",
+    @PostMapping(
+            path = "",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
@@ -56,25 +58,23 @@ public class OrganizationController {
         return organizationRepository.save(organization);
     }
 
-    @RequestMapping(
-            method = RequestMethod.PUT,
-            path = "/organization",
+    @PutMapping(
+            path = "",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-
     public Organization updateOrganization(@RequestBody Organization organization) {
+        System.out.println(organization.getId());
         return organizationRepository.save(organization);
     }
 
-    @RequestMapping(
-            method = RequestMethod.DELETE,
-            path = "/organization/{id}",
+    @DeleteMapping(
+            path = "{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
 
     )
     public void deleteOrganization(@PathVariable("id") Long id) {
-        organizationRepository.deleteOrganizationById(id);
+        organizationRepository.deleteById(id);
     }
 
 }
