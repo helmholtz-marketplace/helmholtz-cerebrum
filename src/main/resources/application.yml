@@ -1,4 +1,5 @@
 cerebrum:
+  version: @project.version@
   allowed:
     client:
       origins:
@@ -30,3 +31,14 @@ spring:
         jwt:
           issuer-uri: https://login.helmholtz-data-federation.de/oauth2
           jwk-set-uri: https://login.helmholtz-data-federation.de/oauth2/jwk
+
+springdoc:
+  api-docs:
+    path: ${spring.data.rest.base-path}/cerebrum-docs
+  swagger-ui:
+    path: /
+    operations-sorter: method
+    oauth:
+      client-id: helmholtz-marketplace-implicit
+      client-secret: ${clientSecret}
+      use-basic-authentication-with-access-code-grant: true
