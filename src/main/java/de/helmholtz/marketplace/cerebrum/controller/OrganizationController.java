@@ -1,7 +1,8 @@
 package de.helmholtz.marketplace.cerebrum.controller;
 
 import de.helmholtz.marketplace.cerebrum.entities.Organization;
-import de.helmholtz.marketplace.cerebrum.exception.OrganizationNotFoundException;
+import de.helmholtz.marketplace.cerebrum.errorhandling.CerebrumApiError;
+import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
 import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +22,7 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE,
@@ -49,13 +50,15 @@ public class OrganizationController {
         this.organizationRepository = organizationRepository;
     }
 
-    @Operation(summary = "get array list of all organisations")
+    @Operation(summary = "get array list of all organizations")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
                     description = "successful operation",
                     content = @Content(array = @ArraySchema(
                             schema = @Schema(implementation = Organization.class)))),
-            @ApiResponse(responseCode = "400", description = "invalid request")
+            @ApiResponse(responseCode = "400", description = "invalid request",
+                    content = @Content(array = @ArraySchema(
+                            schema = @Schema(implementation = CerebrumApiError.class))))
     })
     @GetMapping(path = "")
     public Iterable<Organization> getOrganizations(
@@ -70,20 +73,25 @@ public class OrganizationController {
         }
     }
 
-    @Operation(summary = "find organisation by ID",
+    @Operation(summary = "find organization by ID",
             description = "Returns a detailed organization information " +
                     "corresponding to the ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
                     description = "successful operation",
                     content = @Content(schema = @Schema(implementation = Organization.class))),
-            @ApiResponse(responseCode = "400", description = "invalid organization ID supplied")
+            @ApiResponse(responseCode = "400", description = "invalid organization ID supplied",
+                    content = @Content(schema = @Schema(implementation = CerebrumApiError.class))),
+            @ApiResponse(responseCode = "404", description = "organization not found",
+                    content = @Content(schema = @Schema(implementation = CerebrumApiError.class)))
     })
     @GetMapping(path = "/{id}")
-    public Optional<Organization> getOrganization(
-            @Parameter(description = "ID of the organisation that needs to be fetched")
-            @PathVariable(required = true) Long id) {
-        return organizationRepository.findById(id);
+    public Organization getOrganization(
+            @Parameter(description = "ID of the organization that needs to be fetched")
+            @PathVariable(required = true) Long id)
+    {
+        return organizationRepository.findById(id)
+                .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", id));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -92,11 +100,13 @@ public class OrganizationController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "organization created",
                     content = @Content(schema = @Schema(implementation = Organization.class))),
-            @ApiResponse(responseCode = "400", description = "invalid ID supplied")
+            @ApiResponse(responseCode = "400", description = "invalid ID supplied",
+                    content = @Content(schema = @Schema(implementation = CerebrumApiError.class))),
+            @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content())
     })
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Organization insertOrganization(
-            @Parameter(description = "Organisation object that needs to be added to the marketplace",
+            @Parameter(description = "organization object that needs to be added to the marketplace",
                     required=true, schema=@Schema(implementation = Organization.class))
             @Valid @RequestBody Organization organization) {
         return organizationRepository.save(organization);
@@ -104,11 +114,16 @@ public class OrganizationController {
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "update an existing organization",
-            description = "Update part (or all) of an organisation information",
+            description = "Update part (or all) of an organization information",
             security = @SecurityRequirement(name = "hdf-aai"))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "successful operation"),
-            @ApiResponse(responseCode = "400", description = "invalid ID supplied")
+            @ApiResponse(responseCode = "200", description = "successful operation",
+                    content = @Content(schema = @Schema(implementation = Organization.class))),
+            @ApiResponse(responseCode = "201", description = "organization created",
+                    content = @Content(schema = @Schema(implementation = Organization.class))),
+            @ApiResponse(responseCode = "400", description = "invalid ID supplied",
+                    content = @Content(schema = @Schema(implementation = CerebrumApiError.class))),
+            @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content())
     })
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Organization updateOrganization(
@@ -116,16 +131,16 @@ public class OrganizationController {
                     description="Organization to update or replace. This cannot be null or empty.",
                     schema=@Schema(implementation = Organization.class),
                     required=true) @Valid @RequestBody Organization newOrganization,
-            @Parameter(description = "ID of the organisation that needs to be updated")
+            @Parameter(description = "ID of the organization that needs to be updated")
             @PathVariable(required = true) Long id)
     {
         return organizationRepository.findById(id)
-                .map(organisation -> {
-                    organisation.setAbbreviation(newOrganization.getAbbreviation());
-                    organisation.setName(newOrganization.getName());
-                    organisation.setImg(newOrganization.getImg());
-                    organisation.setUrl(newOrganization.getUrl());
-                    return organizationRepository.save(organisation);
+                .map(organization -> {
+                    organization.setAbbreviation(newOrganization.getAbbreviation());
+                    organization.setName(newOrganization.getName());
+                    organization.setImg(newOrganization.getImg());
+                    organization.setUrl(newOrganization.getUrl());
+                    return organizationRepository.save(organization);
                 })
                 .orElseGet(() -> {
                     newOrganization.setId(id);
@@ -134,27 +149,33 @@ public class OrganizationController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "partially update an existing organisation",
+    @Operation(summary = "partially update an existing organization",
             security = @SecurityRequirement(name = "hdf-aai"))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "successful operation"),
-            @ApiResponse(responseCode = "400", description = "invalid id or json patch body"),
-            @ApiResponse(responseCode = "404", description = "organisation not found")
+            @ApiResponse(responseCode = "200", description = "successful operation",
+                    content = @Content(schema = @Schema(implementation = Organization.class))),
+            @ApiResponse(responseCode = "400", description = "invalid id or json patch body",
+                    content = @Content(schema = @Schema(implementation = CerebrumApiError.class))),
+            @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content()),
+            @ApiResponse(responseCode = "404", description = "organization not found",
+                    content = @Content(schema = @Schema(implementation = CerebrumApiError.class))),
+            @ApiResponse(responseCode = "500", description = "internal server error",
+                    content = @Content(schema = @Schema(implementation = CerebrumApiError.class)))
     })
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
-    public Organization partialUpdateOrganisation(
+    public Organization partialUpdateOrganization(
             @Parameter(description="JSON Patch document structured as a JSON " +
                     "array of objects where each object contains one of the six " +
                     "JSON Patch operations: add, remove, replace, move, copy, and test",
                     schema=@Schema(implementation = JsonPatch.class),
                     required=true) @Valid @RequestBody JsonPatch patch,
-            @Parameter(description = "ID of the organisation that needs to be partially updated")
+            @Parameter(description = "ID of the organization that needs to be partially updated")
             @PathVariable(required = true) Long id)
     {
         return organizationRepository.findById(id)
-                .map(organisation -> {
+                .map(organization -> {
                     try {
-                        Organization organizationPatched = applyPatchToOrganization(patch, organisation);
+                        Organization organizationPatched = applyPatchToOrganization(patch, organization);
                         return organizationRepository.save(organizationPatched);
                     } catch (JsonPatchException e) {
                         throw new ResponseStatusException(
@@ -164,24 +185,25 @@ public class OrganizationController {
                                 HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", e);
                     }
                 })
-                .orElseThrow(OrganizationNotFoundException::new);
+                .orElseThrow(()-> new CerebrumEntityNotFoundException("organization", id));
     }
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "deletes an organisation",
+    @Operation(summary = "deletes an organization",
             description = "Removes the record of the specified " +
-                    "organisation id from the database. The organisation " +
+                    "organization id from the database. The organization " +
                     "unique identification number cannot be null or empty",
             security = @SecurityRequirement(name = "hdf-aai"))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "successful operation"),
-            @ApiResponse(responseCode = "404", description = "invalid organisation id supplied")
+            @ApiResponse(responseCode = "204", description = "successful operation", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content())
     })
     @DeleteMapping(path = "/{id}")
-    public void deleteOrganization(
-            @Parameter(description="organisation id to delete", required=true)
+    public ResponseEntity<Organization> deleteOrganization(
+            @Parameter(description="organization id to delete", required=true)
             @PathVariable(name = "id", required = true) Long id) {
         organizationRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     private Organization applyPatchToOrganization(
