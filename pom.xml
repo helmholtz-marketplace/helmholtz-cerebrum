@@ -14,7 +14,7 @@
 	<artifactId>helmholtz-cerebrum</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>helmholtz-cerebrum</name>
+	<name>Helmholtz Cerebrum</name>
 	<description>helmholtz marketplace resources server</description>
 
 	<properties>
