@@ -1,5 +1,6 @@
 package de.helmholtz.marketplace.cerebrum.controller;
 
+import de.helmholtz.marketplace.cerebrum.entities.MarketService;
 import de.helmholtz.marketplace.cerebrum.entities.Organization;
 import de.helmholtz.marketplace.cerebrum.entities.ServiceProvider;
 import de.helmholtz.marketplace.cerebrum.exception.ServiceProviderNotFoundException;
@@ -66,11 +67,17 @@ public class ServiceProviderController {
             @RequestParam(value = "page", defaultValue = "0") @Nullable Integer page,
             @Parameter(description = "limit the number of records returned in one page")
             @RequestParam(value = "size", defaultValue = "20") @Nullable Integer size) {
+        Iterable<ServiceProvider> serviceProviders;
         if (page != null && size != null) {
-            return serviceProviderRepository.findAll(PageRequest.of(page, size));
+            serviceProviders = serviceProviderRepository.findAll(PageRequest.of(page, size));
         } else {
-            return serviceProviderRepository.findAll();
+            serviceProviders = serviceProviderRepository.findAll();
         }
+        serviceProviders.forEach(s -> {
+            Iterable<MarketService> ms = serviceProviderRepository.getMarketServicesByServiceProviderId(s.getId());
+            s.setServiceList(ms);
+        });
+        return serviceProviders;
     }
 
     /* get ServiceProvider */
@@ -84,7 +91,9 @@ public class ServiceProviderController {
     public Optional<ServiceProvider> getServiceProvider(
             @Parameter(description = "ID of the serviceProvider that needs to be fetched")
             @PathVariable(required = true) Long id) {
-        return serviceProviderRepository.findById(id);
+        Optional<ServiceProvider> serviceProvider = serviceProviderRepository.findById(id);
+        serviceProvider.ifPresent(s -> s.setServiceList(serviceProviderRepository.getMarketServicesByServiceProviderId(s.getId())));
+        return serviceProvider;
     }
 
     /* create ServiceProvider */
@@ -102,7 +111,9 @@ public class ServiceProviderController {
             @Valid @RequestBody ServiceProvider serviceProvider) {
         Optional<Organization> organization = organizationRepository.findById(serviceProvider.getOrganization().getId());
         organization.ifPresent(serviceProvider::setOrganization);
-        return serviceProviderRepository.save(serviceProvider);
+        ServiceProvider newServiceProvider = serviceProviderRepository.save(serviceProvider);
+        newServiceProvider.setServiceList(serviceProviderRepository.getMarketServicesByServiceProviderId(newServiceProvider.getId()));
+        return newServiceProvider;
     }
 
     /* update ServiceProvider */
@@ -127,7 +138,9 @@ public class ServiceProviderController {
             serviceProvider.setOrganization(organization.get());
         }
         serviceProvider.setId(id);
-        return this.serviceProviderRepository.save(serviceProvider);
+        ServiceProvider newServiceProvider = serviceProviderRepository.save(serviceProvider);
+        newServiceProvider.setServiceList(serviceProviderRepository.getMarketServicesByServiceProviderId(newServiceProvider.getId()));
+        return newServiceProvider;
     }
 
     /* JSON PATCH ServiceProvider */
@@ -155,7 +168,9 @@ public class ServiceProviderController {
                         ServiceProvider serviceProviderPatched = applyPatchToServiceProvider(patch, serviceProvider);
                         Optional<Organization> organization = organizationRepository.findById(serviceProviderPatched.getOrganization().getId());
                         organization.ifPresent(serviceProviderPatched::setOrganization);
-                        return serviceProviderRepository.save(serviceProviderPatched);
+                        ServiceProvider newServiceProvider = serviceProviderRepository.save(serviceProviderPatched);
+                        newServiceProvider.setServiceList(serviceProviderRepository.getMarketServicesByServiceProviderId(newServiceProvider.getId()));
+                        return newServiceProvider;
                     } catch (JsonPatchException e) {
                         throw new ResponseStatusException(
                                 HttpStatus.BAD_REQUEST, "invalid id or json patch body", e);

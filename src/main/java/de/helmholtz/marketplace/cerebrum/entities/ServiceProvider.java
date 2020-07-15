@@ -22,11 +22,11 @@ public class ServiceProvider {
     @Relationship(type = "PART_OF")
     private Organization organization;
     @Schema(description = "A list of Services which are provided by the ServiceProvider")
-    @Relationship(type = "PROVIDES")
-    private List<MarketService> serviceList;
+    //@Relationship(type = "PROVIDES")
+    private Iterable<MarketService> serviceList;
     @Schema(description = "A list with users, to have a contact in case of trouble")
     @Relationship(type = "HAS")
-    private List<MarketUser> contactPersons;
+    private Iterable<MarketUser> contactPersons;
 
     public Long getId() {
         return id;
@@ -44,19 +44,19 @@ public class ServiceProvider {
         this.organization = organization;
     }
 
-    public List<MarketService> getServiceList() {
+    public Iterable<MarketService> getServiceList() {
         return serviceList;
     }
 
-    public void setServiceList(List<MarketService> serviceList) {
+    public void setServiceList(Iterable<MarketService> serviceList) {
         this.serviceList = serviceList;
     }
 
-    public List<MarketUser> getContactPersons() {
+    public Iterable<MarketUser> getContactPersons() {
         return contactPersons;
     }
 
-    public void setContactPersons(List<MarketUser> contactPersons) {
+    public void setContactPersons(Iterable<MarketUser> contactPersons) {
         this.contactPersons = contactPersons;
     }
 }
