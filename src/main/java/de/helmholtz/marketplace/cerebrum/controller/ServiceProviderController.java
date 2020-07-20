@@ -3,7 +3,7 @@ package de.helmholtz.marketplace.cerebrum.controller;
 import de.helmholtz.marketplace.cerebrum.entities.MarketService;
 import de.helmholtz.marketplace.cerebrum.entities.Organization;
 import de.helmholtz.marketplace.cerebrum.entities.ServiceProvider;
-import de.helmholtz.marketplace.cerebrum.exception.ServiceProviderNotFoundException;
+import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
 import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
 import de.helmholtz.marketplace.cerebrum.repository.ServiceProviderRepository;
 
@@ -179,7 +179,7 @@ public class ServiceProviderController {
                                 HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", e);
                     }
                 })
-                .orElseThrow(ServiceProviderNotFoundException::new);
+                .orElseThrow(()-> new CerebrumEntityNotFoundException("serviceProvider", id));
     }
 
     /* delete ServiceProvider */
