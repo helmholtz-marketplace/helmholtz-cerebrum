@@ -37,7 +37,7 @@ import java.util.Optional;
 
 import de.helmholtz.marketplace.cerebrum.entities.MarketService;
 import de.helmholtz.marketplace.cerebrum.entities.ServiceProvider;
-import de.helmholtz.marketplace.cerebrum.exception.MarketServiceNotFoundException;
+import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
 import de.helmholtz.marketplace.cerebrum.repository.MarketServiceRepository;
 import de.helmholtz.marketplace.cerebrum.repository.ServiceProviderRepository;
 
@@ -166,7 +166,7 @@ public class MarketServiceController {
                                 HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", e);
                     }
                 })
-                .orElseThrow(MarketServiceNotFoundException::new);
+                .orElseThrow(() -> new CerebrumEntityNotFoundException("marketService", id));
     }
 
     /* delete Service */
