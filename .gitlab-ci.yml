@@ -1,6 +1,7 @@
 stages:
     - build
     - test
+    - test_sonar
     - pre_package
     - package
     - deploy
