@@ -8,6 +8,7 @@ import org.neo4j.ogm.annotation.NodeEntity;
 
 import javax.validation.constraints.NotNull;
 
+@Schema(name="Organization", description="POJO that represents a single organization entry.")
 @NodeEntity
 public class Organization {
 

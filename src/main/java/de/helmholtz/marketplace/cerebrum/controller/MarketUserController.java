@@ -3,6 +3,7 @@ package de.helmholtz.marketplace.cerebrum.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import de.helmholtz.marketplace.cerebrum.entities.MarketUser;
+import de.helmholtz.marketplace.cerebrum.errorhandling.CerebrumApiError;
 import de.helmholtz.marketplace.cerebrum.repository.MarketUserRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,8 +46,11 @@ public class MarketUserController
                     @ApiResponse(responseCode = "200", description = "Success",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = MarketUser.class))),
-                    @ApiResponse(responseCode = "401", description = "Unauthorised"),
-                    @ApiResponse(responseCode = "500", description = "Server Error")
+                    @ApiResponse(responseCode = "401", description = "Unauthorised",
+                            content = @Content()),
+                    @ApiResponse(responseCode = "500", description = "Server Error",
+                            content = @Content(schema = @Schema(
+                                    implementation = CerebrumApiError.class)))
             }
     )
     public JsonNode whoami() {

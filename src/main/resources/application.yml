@@ -17,6 +17,9 @@ logging:
 server:
   port: 8090
   forward-headers-strategy: NATIVE
+  error:
+    whitelabel:
+      enabled: false
 
 spring:
   data:
@@ -25,6 +28,8 @@ spring:
     neo4j:
       username: neo4j
       password: secret
+  mvc:
+    throw-exception-if-no-handler-found: true
   security:
     oauth2:
       resourceserver:

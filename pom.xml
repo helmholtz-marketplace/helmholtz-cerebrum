@@ -14,13 +14,15 @@
 	<artifactId>helmholtz-cerebrum</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>helmholtz-cerebrum</name>
+	<name>Helmholtz Cerebrum</name>
 	<description>helmholtz marketplace resources server</description>
 
 	<properties>
 		<java.version>11</java.version>
 		<springdoc-openapi-ui.version>1.4.1</springdoc-openapi-ui.version>
 		<json-patch.version>1.13</json-patch.version>
+		<!--suppress UnresolvedMavenProperty -->
+		<sonar.token>${env.SONAR_AUTH_TOKEN}</sonar.token>
 	</properties>
 
 	<dependencies>
@@ -138,5 +140,58 @@
 				<version>2.2.7.RELEASE</version>
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>3.7.0.1746</version>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>0.8.5</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
+	<profiles>
+		<profile>
+			<id>static-code-analysis</id>
+			<properties>
+				<sonar.login>${sonar.token}</sonar.login>
+				<sonar.host.url>https://sonar.desy.de</sonar.host.url>
+				<sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+				<sonar.projectName>${project.name}</sonar.projectName>
+				<sonar.sources>src/main</sonar.sources>
+				<sonar.tests>src/test</sonar.tests>
+				<sonar.projectVersion>${project.version}</sonar.projectVersion>
+				<sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+				<sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+				<sonar.qualitygate.timeout>30</sonar.qualitygate.timeout>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>prepare-agent</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
