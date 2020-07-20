@@ -8,11 +8,15 @@ import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
+import de.helmholtz.marketplace.cerebrum.utils.CerebrumEntityUuidGenerator;
+
+import static de.helmholtz.marketplace.cerebrum.utils.CerebrumEntityUuidGenerator.generate;
+
 public class MarketService {
-    @Id
-    @GeneratedValue
-    @Schema(description = "Unique identifier of the Service", example = "0", required = true)
-    private Long id;
+    @Schema(description = "Unique identifier of the market service.",
+            example = "svc-01eac6d7-0d35-1812-a3ed-24aec4231940", required = true)
+    @Id @GeneratedValue(strategy = CerebrumEntityUuidGenerator.class)
+    private String uuid;
     @NotNull
     @Schema(description = "Name of a Service", example = "Sync+Share", required = true)
     private String name;
@@ -31,12 +35,16 @@ public class MarketService {
     @Schema(description = "Indicates who is providing the service")
     private List<Organization> organizations;
 
-    public Long getId() {
-        return id;
+    public String getUuid()
+    {
+        return uuid;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setUuid(String uuid)
+    {
+        this.uuid =  Boolean.TRUE.equals(
+                CerebrumEntityUuidGenerator.isValid(uuid))
+                ? uuid : generate("org");
     }
 
     public String getName() {

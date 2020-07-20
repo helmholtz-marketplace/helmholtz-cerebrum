@@ -86,12 +86,13 @@ public class OrganizationController {
             @ApiResponse(responseCode = "404", description = "organization not found",
                     content = @Content(schema = @Schema(implementation = CerebrumApiError.class)))
     })
-    @GetMapping(path = "/{id}")
+    @GetMapping(path = "/{uuid}")
     public Organization getOrganization(
             @Parameter(description = "ID of the organization that needs to be fetched")
-            @PathVariable() Long id) {
-        return organizationRepository.findById(id)
-                .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", id));
+            @PathVariable(name = "uuid") String uuid)
+    {
+        return organizationRepository.findByUuid(uuid)
+                .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", uuid));
     }
 
     /* create Organization */
@@ -127,15 +128,15 @@ public class OrganizationController {
                     content = @Content(schema = @Schema(implementation = CerebrumApiError.class))),
             @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content())
     })
-    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{uuid}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Organization updateOrganization(
-            @Parameter(
-                    description = "Organization to update or replace. This cannot be null or empty.",
-                    schema = @Schema(implementation = Organization.class),
-                    required = true) @Valid @RequestBody Organization newOrganization,
-            @Parameter(description = "ID of the organization that needs to be updated")
-            @PathVariable() Long id) {
-        return organizationRepository.findById(id)
+            @Parameter(description="Organization to update or replace. This cannot be null or empty.",
+                    schema=@Schema(implementation = Organization.class),
+                    required=true) @Valid @RequestBody Organization newOrganization,
+            @Parameter(description = "Unique identifier of the organization that needs to be updated")
+            @PathVariable(name = "uuid") String uuid)
+    {
+        return organizationRepository.findByUuid(uuid)
                 .map(organization -> {
                     organization.setAbbreviation(newOrganization.getAbbreviation());
                     organization.setName(newOrganization.getName());
@@ -144,7 +145,7 @@ public class OrganizationController {
                     return organizationRepository.save(organization);
                 })
                 .orElseGet(() -> {
-                    newOrganization.setId(id);
+                    newOrganization.setUuid(uuid);
                     return organizationRepository.save(newOrganization);
                 });
     }
@@ -164,7 +165,7 @@ public class OrganizationController {
             @ApiResponse(responseCode = "500", description = "internal server error",
                     content = @Content(schema = @Schema(implementation = CerebrumApiError.class)))
     })
-    @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
+    @PatchMapping(path = "/{uuid}", consumes = "application/json-patch+json")
     public Organization partialUpdateOrganization(
             @Parameter(description = "JSON Patch document structured as a JSON " +
                     "array of objects where each object contains one of the six " +
@@ -172,8 +173,9 @@ public class OrganizationController {
                     schema = @Schema(implementation = JsonPatch.class),
                     required = true) @Valid @RequestBody JsonPatch patch,
             @Parameter(description = "ID of the organization that needs to be partially updated")
-            @PathVariable() Long id) {
-        return organizationRepository.findById(id)
+            @PathVariable(required = true) String uuid)
+    {
+        return organizationRepository.findByUuid(uuid)
                 .map(organization -> {
                     try {
                         Organization organizationPatched = applyPatchToOrganization(patch, organization);
@@ -186,7 +188,7 @@ public class OrganizationController {
                                 HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", e);
                     }
                 })
-                .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", id));
+                .orElseThrow(()-> new CerebrumEntityNotFoundException("organization", uuid));
     }
 
     /* delete Organization */
@@ -200,17 +202,13 @@ public class OrganizationController {
             @ApiResponse(responseCode = "204", description = "successful operation", content = @Content()),
             @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content())
     })
-    @DeleteMapping(path = "/{id}")
+    @DeleteMapping(path = "/{uuid}")
     public ResponseEntity<Organization> deleteOrganization(
-            @Parameter(description = "organization id to delete", required = true)
-            @PathVariable(name = "id") Long id) {
-        Optional<Organization> organization = organizationRepository.findById(id);
-        if (organization.isPresent()) {
-            organizationRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            throw new CerebrumEntityNotFoundException("organization", id);
-        }
+            @Parameter(description="organization id to delete", required=true)
+            @PathVariable(name = "uuid") String uuid)
+    {
+        organizationRepository.deleteByUuid(uuid);
+        return ResponseEntity.noContent().build();
     }
 
     /* for Organization - PATCH */

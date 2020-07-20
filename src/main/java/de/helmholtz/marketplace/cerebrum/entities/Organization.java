@@ -8,15 +8,17 @@ import org.neo4j.ogm.annotation.NodeEntity;
 
 import javax.validation.constraints.NotNull;
 
+import de.helmholtz.marketplace.cerebrum.utils.CerebrumEntityUuidGenerator;
+import static de.helmholtz.marketplace.cerebrum.utils.CerebrumEntityUuidGenerator.generate;
+
 @Schema(name = "Organization", description = "POJO that represents a single organization entry.")
 @NodeEntity
 public class Organization {
 
     @Schema(description = "Unique identifier of the organisation",
-            example = "0", required = true)
-    @Id
-    @GeneratedValue
-    private Long id;
+            example = "org-01eac6d7-0d35-1812-a3ed-24aec4231940", required = true)
+    @Id @GeneratedValue(strategy = CerebrumEntityUuidGenerator.class)
+    private String uuid;
 
     @Schema(description = "Name of the organisation in full",
             example = "Deutsches Elektronen-Synchrotron", required = true)
@@ -43,12 +45,16 @@ public class Organization {
     @Schema(description = "A list with users, to have a contact in case of trouble")
     private Iterable<MarketUser> contactPersons;
 
-    public Long getId() {
-        return id;
+    public String getUuid()
+    {
+        return uuid;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setUuid(String uuid)
+    {
+        this.uuid =  Boolean.TRUE.equals(
+                CerebrumEntityUuidGenerator.isValid(uuid))
+                ? uuid : generate("org");
     }
 
     public String getName() {

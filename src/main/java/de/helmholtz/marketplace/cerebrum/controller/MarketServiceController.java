@@ -66,17 +66,20 @@ public class MarketServiceController {
     }
 
     /* get single Service */
-    @Operation(summary = "find a service by ID", description = "Returns detailed service information corresponding to the ID")
+    @Operation(summary = "find a service by ID",
+            description = "Returns detailed service information corresponding to the ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "successful operation",
                     content = @Content(schema = @Schema(implementation = MarketService.class))),
             @ApiResponse(responseCode = "400", description = "invalid service ID supplied")
     })
-    @GetMapping(path = "/{id}")
+    @GetMapping(path = "/{uuid}")
     public MarketService getMarketService(
             @Parameter(description = "ID of the service that needs to be fetched")
-            @PathVariable() Long id) {
-        return marketServiceRepository.findById(id).orElseThrow(() -> new CerebrumEntityNotFoundException("marketService", id));
+            @PathVariable() String uuid) {
+        return marketServiceRepository
+                .findByUuid(uuid)
+                .orElseThrow(() -> new CerebrumEntityNotFoundException("marketService", uuid));
     }
 
     /* create Service */
@@ -97,21 +100,23 @@ public class MarketServiceController {
 
     /* update Service */
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "update an existing service", description = "Update all attributes and relations of a service",
+    @Operation(summary = "update an existing service",
+            description = "Update all attributes and relations of a service",
             security = @SecurityRequirement(name = "hdf-aai"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "update operation was successful",
                     content = @Content(schema = @Schema(implementation = MarketService.class))),
             @ApiResponse(responseCode = "400", description = "invalid ID supplied")
     })
-    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{uuid}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public MarketService updateMarketService(
             @Parameter(description = "Service to update or replace. This cannot be null or empty.",
                     required = true, schema = @Schema(implementation = MarketService.class))
             @Valid @RequestBody MarketService marketService,
             @Parameter(description = "ID of the service that needs to be updated")
-            @PathVariable() Long id) {
-        marketService.setId(id);
+            @PathVariable() String uuid)
+    {
+        marketService.setUuid(uuid);
         return this.marketServiceRepository.save(marketService);
     }
 
@@ -125,7 +130,7 @@ public class MarketServiceController {
             @ApiResponse(responseCode = "400", description = "invalid id or json patch body"),
             @ApiResponse(responseCode = "404", description = "service not found")
     })
-    @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
+    @PatchMapping(path = "/{uuid}", consumes = "application/json-patch+json")
     public MarketService partialUpdateMarketService(
             @Parameter(description = "JSON Patch document structured as a JSON " +
                     "array of objects where each object contains one of the six " +
@@ -133,8 +138,9 @@ public class MarketServiceController {
                     schema = @Schema(implementation = JsonPatch.class),
                     required = true) @Valid @RequestBody JsonPatch patch,
             @Parameter(description = "ID of the service that needs to be partially updated")
-            @PathVariable() Long id) {
-        return marketServiceRepository.findById(id)
+            @PathVariable() String uuid)
+    {
+        return marketServiceRepository.findByUuid(uuid)
                 .map(marketService -> {
                     try {
                         MarketService marketServicePatched = applyPatchToMarketService(patch, marketService);
@@ -147,27 +153,25 @@ public class MarketServiceController {
                                 HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", e);
                     }
                 })
-                .orElseThrow(() -> new CerebrumEntityNotFoundException("marketService", id));
+                .orElseThrow(() -> new CerebrumEntityNotFoundException("marketService", uuid));
     }
 
     /* delete Service */
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "deletes a service",
-            description = "Removes the record of the specified service id from the database. The service unique identification number cannot be null or empty",
+            description = "Removes the record of the specified service id " +
+                    "from the database. The service unique identification " +
+                    "number cannot be null or empty",
             security = @SecurityRequirement(name = "hdf-aai"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "successful operation"),
             @ApiResponse(responseCode = "404", description = "invalid service id supplied")
     })
-    @DeleteMapping(path = "/{id}")
-    public ResponseEntity<MarketService> deleteMarketService(@PathVariable("id") Long id) {
-        Optional<MarketService> marketService = marketServiceRepository.findById(id);
-        if (marketService.isPresent()) {
-            marketServiceRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            throw new CerebrumEntityNotFoundException("marketService", id);
-        }
+    @DeleteMapping(path = "/{uuid}")
+    public ResponseEntity<MarketService> deleteMarketService(@PathVariable("uuid") String uuid)
+    {
+        marketServiceRepository.deleteByUuid(uuid);
+        return ResponseEntity.noContent().build();
     }
 
     /* for Service - PATCH */
