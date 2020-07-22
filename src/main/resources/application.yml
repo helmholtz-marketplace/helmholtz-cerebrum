@@ -34,8 +34,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://login.helmholtz-data-federation.de/oauth2
-          jwk-set-uri: https://login.helmholtz-data-federation.de/oauth2/jwk
+          issuer-uri: https://login.helmholtz.de/oauth2
+          jwk-set-uri: https://login.helmholtz.de/oauth2/jwk
 
 springdoc:
   api-docs:
