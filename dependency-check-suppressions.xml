@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: javax-websocket-server-impl-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>f981b1ebcb410943e138912424b94539f1adbaa6</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:java-websocket_project:java-websocket</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jakarta.websocket-api-1.1.2.jar
+   ]]></notes>
+        <sha1>69c2fdfb75081cc935bc9d6c5616d12b0b73815f</sha1>
+        <cpe>cpe:/a:java-websocket_project:java-websocket</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: javax-websocket-client-impl-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>3e71f1e1fa705cd7335325e26173b260452b33b7</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:java-websocket_project:java-websocket</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-reactive-httpclient-1.1.3.jar
+   ]]></notes>
+        <sha1>f60f2c00a1c0aa5039af2420e5626deddbd06117</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-server-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>2c6590067589a0730223416c3157b1d4d121b95b</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-xml-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>f33d47ab9e0edd5bcfde3d5147dc30885e5a2215</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-http-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>21b761eae53b8e5201fb8fdf03b9865116a29b47</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-util-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>4866aa5271465f1d9035c4726209e4926fe1599c</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-plus-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>29b693bde4988be331756a0c09ac1d2a775cefae</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: neo4j-java-driver-4.0.1.jar (shaded: io.netty:netty-transport:4.1.45.Final)
+   ]]></notes>
+        <sha1>a3c745067b4bbc136db4ce3d113b95a1f2b278b6</sha1>
+        <cpe>cpe:/a:netty:netty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-jndi-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>b36d91a0df4bf30eac1469990964c7f23837b10c</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: neo4j-ogm-bolt-driver-3.2.12.jar
+   ]]></notes>
+        <sha1>70e055a0d6c014e98f478deb0be5ac67f070c7ff</sha1>
+        <cpe>cpe:/a:bolt:bolt</cpe>
+        <cpe>cpe:/a:neo4j:neo4j</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: spring-security-core-5.3.3.RELEASE.jar
+   ]]></notes>
+        <sha1>abdd5a67b3fdc2f4a63023c3f60bbbf21c7c08cf</sha1>
+        <cpe>cpe:/a:pivotal_software:spring_security</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-webapp-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>75ffa373d7f96aaf3ef7e236605c9757f8e941bf</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-client-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>b14775a6d9a13cec96469ed1504be511fb67c0fe</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: websocket-server-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>291e5c662d63d2da24c01eec25f210b1369a7796</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:java-websocket_project:java-websocket</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-servlet-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>cf3a0f63057cce87a8f0ca65906f3393be86a89c</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: spring-security-oauth2-core-5.3.3.RELEASE.jar
+   ]]></notes>
+        <sha1>28aaf647a4afa4b4edd7693c0d9dba7b65fcb3e6</sha1>
+        <cpe>cpe:/a:pivotal:spring_security_oauth</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_security</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_security_oauth</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-servlets-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>29039954069c686e44664e8a51ddb9d692ca4977</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: spring-security-web-5.3.3.RELEASE.jar
+   ]]></notes>
+        <sha1>a7edf55294e312f4c09e372c333e94d96bcf7c70</sha1>
+        <cpe>cpe:/a:pivotal_software:spring_security</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-security-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>401f979b090849ca789e6768806539099a5d7f4a</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: spring-security-config-5.3.3.RELEASE.jar
+   ]]></notes>
+        <sha1>4df881cc253f63e6aaff9dd66528c2dc18ca61e8</sha1>
+        <cpe>cpe:/a:pivotal_software:spring_security</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-annotations-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>63afac711142424333981d25cb5649d7147ef961</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: jetty-continuation-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>855d117ee76c3009da297fb3e4479d50e47c6b86</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: websocket-common-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>9d0afdc697c1d97c51ed8423cb7bb3ab5b965dec</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:java-websocket_project:java-websocket</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: spring-security-oauth2-resource-server-5.3.3.RELEASE.jar
+   ]]></notes>
+        <sha1>00b218457a2eb7f0e843507a45e3ed659725352b</sha1>
+        <cpe>cpe:/a:pivotal:spring_security_oauth</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_security</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_security_oauth</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: websocket-client-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>7dd5784eb09912ece57865e0ac1ad236b420aceb</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:java-websocket_project:java-websocket</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: websocket-servlet-9.4.29.v20200521.jar
+   ]]></notes>
+        <sha1>0f089ed901e581ca0c3c539f9068e8c6dd4b3a2e</sha1>
+        <cpe>cpe:/a:eclipse:jetty</cpe>
+        <cpe>cpe:/a:java-websocket_project:java-websocket</cpe>
+        <cpe>cpe:/a:jetty:jetty</cpe>
+        <cpe>cpe:/a:mortbay_jetty:jetty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: spring-security-oauth2-jose-5.3.3.RELEASE.jar
+   ]]></notes>
+        <sha1>ec95bc5b24451ab014fd98bf1bcd692b2d567bff</sha1>
+        <cpe>cpe:/a:pivotal:spring_security_oauth</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_security</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_security_oauth</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: neo4j-java-driver-4.0.1.jar (shaded: io.netty:netty-codec:4.1.45.Final)
+   ]]></notes>
+        <sha1>bed638d884168c8fa1b91f808ab1d6597985c97c</sha1>
+        <cpe>cpe:/a:netty:netty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: neo4j-java-driver-4.0.1.jar (shaded: io.netty:netty-common:4.1.45.Final)
+   ]]></notes>
+        <sha1>c41bd9cbcdffad38fb7fc51a0e9c9f92607d1c45</sha1>
+        <cpe>cpe:/a:netty:netty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: neo4j-java-driver-4.0.1.jar (shaded: io.netty:netty-buffer:4.1.45.Final)
+   ]]></notes>
+        <sha1>20a2757d2385a24ac531662b6578dbdd4e9ad6b7</sha1>
+        <cpe>cpe:/a:netty:netty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: neo4j-java-driver-4.0.1.jar (shaded: io.netty:netty-handler:4.1.45.Final)
+   ]]></notes>
+        <sha1>585f729670f9adc3bf0870ee812298736cf86ed4</sha1>
+        <cpe>cpe:/a:netty:netty</cpe>
+    </suppress>
+    <suppress  until="2020-09-30Z">
+        <notes><![CDATA[
+   file name: neo4j-java-driver-4.0.1.jar (shaded: io.netty:netty-resolver:4.1.45.Final)
+   ]]></notes>
+        <sha1>669bf1333a58066034deb34dbf7fd0e54939e882</sha1>
+        <cpe>cpe:/a:netty:netty</cpe>
+    </suppress>
+</suppressions>
