@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import de.helmholtz.marketplace.cerebrum.entities.MarketService;
@@ -61,8 +64,15 @@ public class MarketServiceController {
             @Parameter(description = "specify the page number")
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @Parameter(description = "limit the number of records returned in one page")
-            @RequestParam(value = "size", defaultValue = "20") Integer size) {
-        return marketServiceRepository.findAll(PageRequest.of(page, size));
+            @RequestParam(value = "size", defaultValue = "20") Integer size,
+            @Parameter(description = "sort the fetched data in either ascending (asc) " +
+                    "or descending (desc) according to one or more of the service " +
+                    "properties. Eg. to sort the list in ascending order base on the " +
+                    "name property; the value will be set to name.asc")
+            @RequestParam(value = "sort", defaultValue = "name.asc") List<String> sorts)
+    {
+        return marketServiceRepository.findAll(
+                PageRequest.of(page, size, Sort.by(getOrders(sorts))));
     }
 
     /* get single Service */
@@ -174,7 +184,9 @@ public class MarketServiceController {
         return ResponseEntity.noContent().build();
     }
 
-    /* for Service - PATCH */
+    /**
+     * TODO: util methods - it might be better to factor these out
+     */
     private MarketService applyPatchToMarketService(
             JsonPatch patch,
             MarketService targetMarketService) throws JsonPatchException, JsonProcessingException {
@@ -183,4 +195,21 @@ public class MarketServiceController {
         return objectMapper.treeToValue(patched, MarketService.class);
     }
 
+    private List<Sort.Order> getOrders(List<String> sorts)
+    {
+        List<Sort.Order> orders = new ArrayList<>();
+        for (String sort: sorts) {
+            if (sort.contains(".")) {
+                String[] order = sort.split("\\.");
+                orders.add(new Sort.Order(
+                        order[1].equals("asc") ?
+                                Sort.Direction.ASC :
+                                Sort.Direction.DESC, order[0])
+                );
+            } else {
+                orders.add(new Sort.Order(Sort.Direction.ASC, sort));
+            }
+        }
+        return orders;
+    }
 }

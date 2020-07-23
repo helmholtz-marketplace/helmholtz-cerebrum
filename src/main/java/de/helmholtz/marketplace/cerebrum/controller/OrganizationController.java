@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE,
@@ -66,11 +68,15 @@ public class OrganizationController {
             @Parameter(description = "specify the page number")
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @Parameter(description = "limit the number of records returned in one page")
-            @RequestParam(value = "size", defaultValue = "20") Integer size) {
-        Iterable<Organization> organizations;
-        organizations = organizationRepository.findAll(PageRequest.of(page, size));
-        return organizations;
-
+            @RequestParam(value = "size", defaultValue = "20") Integer size,
+            @Parameter(description = "sort the fetched data in either ascending (asc) " +
+                    "or descending (desc) according to one or more of the organisation " +
+                    "properties. Eg. to sort the list in ascending order base on the " +
+                    "name property; the value will be set to name.asc")
+            @RequestParam(value = "sort", defaultValue = "name.asc") List<String> sorts)
+    {
+        return organizationRepository.findAll(
+                PageRequest.of(page, size, Sort.by(getOrders(sorts))));
     }
 
     /* get Organization */
@@ -211,12 +217,32 @@ public class OrganizationController {
         return ResponseEntity.noContent().build();
     }
 
-    /* for Organization - PATCH */
+    /**
+     * TODO: util methods - it might be better to factor these out
+     */
     private Organization applyPatchToOrganization(
             JsonPatch patch,
             Organization targetOrganization) throws JsonPatchException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode patched = patch.apply(objectMapper.convertValue(targetOrganization, JsonNode.class));
         return objectMapper.treeToValue(patched, Organization.class);
+    }
+
+    private List<Sort.Order> getOrders(List<String> sorts)
+    {
+        List<Sort.Order> orders = new ArrayList<>();
+        for (String sort: sorts) {
+            if (sort.contains(".")) {
+                String[] order = sort.split("\\.");
+                orders.add(new Sort.Order(
+                        order[1].equals("asc") ?
+                                Sort.Direction.ASC :
+                                Sort.Direction.DESC, order[0])
+                );
+            } else {
+                orders.add(new Sort.Order(Sort.Direction.ASC, sort));
+            }
+        }
+        return orders;
     }
 }
