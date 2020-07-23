@@ -30,7 +30,7 @@ public class MarketService {
     private Authentication authentication;
     @Schema(description = "Indicates who is the provider of the service")
     @Relationship(type = "PROVIDED_BY")
-    private ServiceProvider serviceProvider;
+    private Organization organization;
 
     public Long getId() {
         return id;
@@ -96,11 +96,11 @@ public class MarketService {
         this.authentication = authentication;
     }
 
-    public ServiceProvider getServiceProvider() {
-        return serviceProvider;
+    public Organization getOrganization() {
+        return organization;
     }
 
-    public void setServiceProvider(ServiceProvider serviceProvider) {
-        this.serviceProvider = serviceProvider;
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

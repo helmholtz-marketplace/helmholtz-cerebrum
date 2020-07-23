@@ -8,7 +8,7 @@ import org.neo4j.ogm.annotation.NodeEntity;
 
 import javax.validation.constraints.NotNull;
 
-@Schema(name="Organization", description="POJO that represents a single organization entry.")
+@Schema(name = "Organization", description = "POJO that represents a single organization entry.")
 @NodeEntity
 public class Organization {
 
@@ -38,6 +38,10 @@ public class Organization {
     @URL(message = "Web address")
     @NotNull
     private String url;
+    @Schema(description = "A list of Services which are provided by the organization")
+    private Iterable<MarketService> serviceList;
+    @Schema(description = "A list with users, to have a contact in case of trouble")
+    private Iterable<MarketUser> contactPersons;
 
     public Long getId() {
         return id;
@@ -77,5 +81,21 @@ public class Organization {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public Iterable<MarketService> getServiceList() {
+        return serviceList;
+    }
+
+    public void setServiceList(Iterable<MarketService> serviceList) {
+        this.serviceList = serviceList;
+    }
+
+    public Iterable<MarketUser> getContactPersons() {
+        return contactPersons;
+    }
+
+    public void setContactPersons(Iterable<MarketUser> contactPersons) {
+        this.contactPersons = contactPersons;
     }
 }

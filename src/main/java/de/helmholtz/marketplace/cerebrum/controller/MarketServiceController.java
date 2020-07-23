@@ -15,9 +15,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,11 +36,10 @@ import javax.validation.Valid;
 import java.util.Optional;
 
 import de.helmholtz.marketplace.cerebrum.entities.MarketService;
-import de.helmholtz.marketplace.cerebrum.entities.ServiceProvider;
+import de.helmholtz.marketplace.cerebrum.entities.Organization;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
 import de.helmholtz.marketplace.cerebrum.repository.MarketServiceRepository;
-import de.helmholtz.marketplace.cerebrum.repository.ServiceProviderRepository;
-
+import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
 
 @RestController
 @RequestMapping(path = "${spring.data.rest.base-path}/services", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -48,11 +47,11 @@ import de.helmholtz.marketplace.cerebrum.repository.ServiceProviderRepository;
 public class MarketServiceController {
 
     private final MarketServiceRepository marketServiceRepository;
-    private final ServiceProviderRepository serviceProviderRepository;
+    private final OrganizationRepository organizationRepository;
 
-    public MarketServiceController(MarketServiceRepository marketServiceRepository, ServiceProviderRepository serviceProviderRepository) {
+    public MarketServiceController(MarketServiceRepository marketServiceRepository, OrganizationRepository organizationRepository) {
         this.marketServiceRepository = marketServiceRepository;
-        this.serviceProviderRepository = serviceProviderRepository;
+        this.organizationRepository = organizationRepository;
     }
 
     /* get Services */
@@ -83,10 +82,10 @@ public class MarketServiceController {
             @ApiResponse(responseCode = "400", description = "invalid service ID supplied")
     })
     @GetMapping(path = "/{id}")
-    public Optional<MarketService> getMarketService(
+    public MarketService getMarketService(
             @Parameter(description = "ID of the service that needs to be fetched")
             @PathVariable(required = true) Long id) {
-        return marketServiceRepository.findById(id);
+        return marketServiceRepository.findById(id).orElseThrow(() -> new CerebrumEntityNotFoundException("marketService", id));
     }
 
     /* create Service */
@@ -102,8 +101,8 @@ public class MarketServiceController {
             @Parameter(description = "Service object that needs to be added to the marketplace",
                     required = true, schema = @Schema(implementation = MarketService.class))
             @Valid @RequestBody MarketService marketService) {
-        Optional<ServiceProvider> serviceProvider = serviceProviderRepository.findById(marketService.getServiceProvider().getId());
-        serviceProvider.ifPresent(marketService::setServiceProvider);
+        Optional<Organization> organization = organizationRepository.findById(marketService.getOrganization().getId());
+        organization.ifPresent(marketService::setOrganization);
         return marketServiceRepository.save(marketService);
     }
 
@@ -123,10 +122,10 @@ public class MarketServiceController {
             @Valid @RequestBody MarketService marketService,
             @Parameter(description = "ID of the service that needs to be updated")
             @PathVariable(required = true) Long id) {
-        Optional<ServiceProvider> serviceProvider = serviceProviderRepository.findById(marketService.getServiceProvider().getId());
-        if (serviceProvider.isPresent()) {
-            marketServiceRepository.deleteRelationshipToServiceProvider(id);
-            marketService.setServiceProvider(serviceProvider.get());
+        Optional<Organization> organization = organizationRepository.findById(marketService.getOrganization().getId());
+        if (organization.isPresent()) {
+            marketServiceRepository.deleteRelationshipToOrganization(id);
+            marketService.setOrganization(organization.get());
         }
         marketService.setId(id);
         return this.marketServiceRepository.save(marketService);
@@ -155,8 +154,8 @@ public class MarketServiceController {
                 .map(marketService -> {
                     try {
                         MarketService marketServicePatched = applyPatchToMarketService(patch, marketService);
-                        Optional<ServiceProvider> serviceProvider = serviceProviderRepository.findById(marketServicePatched.getServiceProvider().getId());
-                        serviceProvider.ifPresent(marketServicePatched::setServiceProvider);
+                        Optional<Organization> organization = organizationRepository.findById(marketServicePatched.getOrganization().getId());
+                        organization.ifPresent(marketServicePatched::setOrganization);
                         return marketServiceRepository.save(marketServicePatched);
                     } catch (JsonPatchException e) {
                         throw new ResponseStatusException(
@@ -179,8 +178,14 @@ public class MarketServiceController {
             @ApiResponse(responseCode = "404", description = "invalid service id supplied")
     })
     @DeleteMapping(path = "/{id}")
-    public void deleteMarketService(@PathVariable("id") Long id) {
-        marketServiceRepository.deleteById(id);
+    public ResponseEntity<MarketService> deleteMarketService(@PathVariable("id") Long id) {
+        Optional<MarketService> marketService = marketServiceRepository.findById(id);
+        if (marketService.isPresent()) {
+            marketServiceRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            throw new CerebrumEntityNotFoundException("marketService", id);
+        }
     }
 
     /* for Service - PATCH */

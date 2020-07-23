@@ -1,5 +1,6 @@
 package de.helmholtz.marketplace.cerebrum.controller;
 
+import de.helmholtz.marketplace.cerebrum.entities.MarketService;
 import de.helmholtz.marketplace.cerebrum.entities.Organization;
 import de.helmholtz.marketplace.cerebrum.errorhandling.CerebrumApiError;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE,
@@ -50,6 +52,7 @@ public class OrganizationController {
         this.organizationRepository = organizationRepository;
     }
 
+    /* get Organizations */
     @Operation(summary = "get array list of all organizations")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
@@ -66,13 +69,21 @@ public class OrganizationController {
             @RequestParam(value = "page", defaultValue = "0") @Nullable Integer page,
             @Parameter(description = "limit the number of records returned in one page")
             @RequestParam(value = "size", defaultValue = "20") @Nullable Integer size) {
+        Iterable<Organization> organizations;
         if (page != null && size != null) {
-            return organizationRepository.findAll(PageRequest.of(page, size));
+            organizations = organizationRepository.findAll(PageRequest.of(page, size));
         } else {
-            return organizationRepository.findAll();
+            organizations = organizationRepository.findAll();
         }
+        organizations.forEach(o -> {
+            Iterable<MarketService> ms = organizationRepository.getMarketServicesByOrganizationId(o.getId());
+            o.setServiceList(ms);
+        });
+        return organizations;
+
     }
 
+    /* get Organization */
     @Operation(summary = "find organization by ID",
             description = "Returns a detailed organization information " +
                     "corresponding to the ID")
@@ -88,12 +99,14 @@ public class OrganizationController {
     @GetMapping(path = "/{id}")
     public Organization getOrganization(
             @Parameter(description = "ID of the organization that needs to be fetched")
-            @PathVariable(required = true) Long id)
-    {
-        return organizationRepository.findById(id)
+            @PathVariable(required = true) Long id) {
+        Organization organization = organizationRepository.findById(id)
                 .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", id));
+        organization.setServiceList(organizationRepository.getMarketServicesByOrganizationId(id));
+        return organization;
     }
 
+    /* create Organization */
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "add a new organization",
             security = @SecurityRequirement(name = "hdf-aai"))
@@ -107,11 +120,12 @@ public class OrganizationController {
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Organization insertOrganization(
             @Parameter(description = "organization object that needs to be added to the marketplace",
-                    required=true, schema=@Schema(implementation = Organization.class))
+                    required = true, schema = @Schema(implementation = Organization.class))
             @Valid @RequestBody Organization organization) {
         return organizationRepository.save(organization);
     }
 
+    /* update Organization */
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "update an existing organization",
             description = "Update part (or all) of an organization information",
@@ -128,12 +142,11 @@ public class OrganizationController {
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Organization updateOrganization(
             @Parameter(
-                    description="Organization to update or replace. This cannot be null or empty.",
-                    schema=@Schema(implementation = Organization.class),
-                    required=true) @Valid @RequestBody Organization newOrganization,
+                    description = "Organization to update or replace. This cannot be null or empty.",
+                    schema = @Schema(implementation = Organization.class),
+                    required = true) @Valid @RequestBody Organization newOrganization,
             @Parameter(description = "ID of the organization that needs to be updated")
-            @PathVariable(required = true) Long id)
-    {
+            @PathVariable(required = true) Long id) {
         return organizationRepository.findById(id)
                 .map(organization -> {
                     organization.setAbbreviation(newOrganization.getAbbreviation());
@@ -148,6 +161,7 @@ public class OrganizationController {
                 });
     }
 
+    /* JSON PATCH Organization */
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "partially update an existing organization",
             security = @SecurityRequirement(name = "hdf-aai"))
@@ -164,14 +178,13 @@ public class OrganizationController {
     })
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
     public Organization partialUpdateOrganization(
-            @Parameter(description="JSON Patch document structured as a JSON " +
+            @Parameter(description = "JSON Patch document structured as a JSON " +
                     "array of objects where each object contains one of the six " +
                     "JSON Patch operations: add, remove, replace, move, copy, and test",
-                    schema=@Schema(implementation = JsonPatch.class),
-                    required=true) @Valid @RequestBody JsonPatch patch,
+                    schema = @Schema(implementation = JsonPatch.class),
+                    required = true) @Valid @RequestBody JsonPatch patch,
             @Parameter(description = "ID of the organization that needs to be partially updated")
-            @PathVariable(required = true) Long id)
-    {
+            @PathVariable(required = true) Long id) {
         return organizationRepository.findById(id)
                 .map(organization -> {
                     try {
@@ -185,9 +198,10 @@ public class OrganizationController {
                                 HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", e);
                     }
                 })
-                .orElseThrow(()-> new CerebrumEntityNotFoundException("organization", id));
+                .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", id));
     }
 
+    /* delete Organization */
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "deletes an organization",
             description = "Removes the record of the specified " +
@@ -200,16 +214,21 @@ public class OrganizationController {
     })
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Organization> deleteOrganization(
-            @Parameter(description="organization id to delete", required=true)
+            @Parameter(description = "organization id to delete", required = true)
             @PathVariable(name = "id", required = true) Long id) {
-        organizationRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        Optional<Organization> organization = organizationRepository.findById(id);
+        if (organization.isPresent()) {
+            organizationRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            throw new CerebrumEntityNotFoundException("organization", id);
+        }
     }
 
+    /* for Organization - PATCH */
     private Organization applyPatchToOrganization(
             JsonPatch patch,
-            Organization targetOrganization) throws JsonPatchException, JsonProcessingException
-    {
+            Organization targetOrganization) throws JsonPatchException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode patched = patch.apply(objectMapper.convertValue(targetOrganization, JsonNode.class));
         return objectMapper.treeToValue(patched, Organization.class);
