@@ -1,6 +1,5 @@
 package de.helmholtz.marketplace.cerebrum.controller;
 
-import de.helmholtz.marketplace.cerebrum.entities.MarketService;
 import de.helmholtz.marketplace.cerebrum.entities.Organization;
 import de.helmholtz.marketplace.cerebrum.errorhandling.CerebrumApiError;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
@@ -24,7 +23,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -66,19 +64,11 @@ public class OrganizationController {
     @GetMapping(path = "")
     public Iterable<Organization> getOrganizations(
             @Parameter(description = "specify the page number")
-            @RequestParam(value = "page", defaultValue = "0") @Nullable Integer page,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             @Parameter(description = "limit the number of records returned in one page")
-            @RequestParam(value = "size", defaultValue = "20") @Nullable Integer size) {
+            @RequestParam(value = "size", defaultValue = "20") Integer size) {
         Iterable<Organization> organizations;
-        if (page != null && size != null) {
-            organizations = organizationRepository.findAll(PageRequest.of(page, size));
-        } else {
-            organizations = organizationRepository.findAll();
-        }
-        organizations.forEach(o -> {
-            Iterable<MarketService> ms = organizationRepository.getMarketServicesByOrganizationId(o.getId());
-            o.setServiceList(ms);
-        });
+        organizations = organizationRepository.findAll(PageRequest.of(page, size));
         return organizations;
 
     }
@@ -99,11 +89,9 @@ public class OrganizationController {
     @GetMapping(path = "/{id}")
     public Organization getOrganization(
             @Parameter(description = "ID of the organization that needs to be fetched")
-            @PathVariable(required = true) Long id) {
-        Organization organization = organizationRepository.findById(id)
+            @PathVariable() Long id) {
+        return organizationRepository.findById(id)
                 .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", id));
-        organization.setServiceList(organizationRepository.getMarketServicesByOrganizationId(id));
-        return organization;
     }
 
     /* create Organization */
@@ -118,7 +106,7 @@ public class OrganizationController {
             @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content())
     })
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Organization insertOrganization(
+    public Organization createOrganization(
             @Parameter(description = "organization object that needs to be added to the marketplace",
                     required = true, schema = @Schema(implementation = Organization.class))
             @Valid @RequestBody Organization organization) {
@@ -146,7 +134,7 @@ public class OrganizationController {
                     schema = @Schema(implementation = Organization.class),
                     required = true) @Valid @RequestBody Organization newOrganization,
             @Parameter(description = "ID of the organization that needs to be updated")
-            @PathVariable(required = true) Long id) {
+            @PathVariable() Long id) {
         return organizationRepository.findById(id)
                 .map(organization -> {
                     organization.setAbbreviation(newOrganization.getAbbreviation());
@@ -184,7 +172,7 @@ public class OrganizationController {
                     schema = @Schema(implementation = JsonPatch.class),
                     required = true) @Valid @RequestBody JsonPatch patch,
             @Parameter(description = "ID of the organization that needs to be partially updated")
-            @PathVariable(required = true) Long id) {
+            @PathVariable() Long id) {
         return organizationRepository.findById(id)
                 .map(organization -> {
                     try {
@@ -215,7 +203,7 @@ public class OrganizationController {
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Organization> deleteOrganization(
             @Parameter(description = "organization id to delete", required = true)
-            @PathVariable(name = "id", required = true) Long id) {
+            @PathVariable(name = "id") Long id) {
         Optional<Organization> organization = organizationRepository.findById(id);
         if (organization.isPresent()) {
             organizationRepository.deleteById(id);

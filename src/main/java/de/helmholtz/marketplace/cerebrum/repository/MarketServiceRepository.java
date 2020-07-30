@@ -7,7 +7,4 @@ import de.helmholtz.marketplace.cerebrum.entities.MarketService;
 
 public interface MarketServiceRepository extends PagingAndSortingRepository<MarketService, Long> {
 
-    @Query("MATCH (m:MarketService)-[p:PROVIDED_BY]->(s) WHERE ID(m) = $0 DELETE p")
-    void deleteRelationshipToOrganization(Long organizationId);
-
 }

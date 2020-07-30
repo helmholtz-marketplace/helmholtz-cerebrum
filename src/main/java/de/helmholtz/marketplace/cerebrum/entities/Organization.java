@@ -25,11 +25,11 @@ public class Organization {
 
     @Schema(description = "The shortened form of an organisation's name - this " +
             "can be an acronym or initial",
-            example = "DESY", required = false)
+            example = "DESY")
     private String abbreviation;
 
     @Schema(description = "Valid web address link to the organisation logo " +
-            "or base64 encoded string of the organisation logo", required = false,
+            "or base64 encoded string of the organisation logo",
             example = "https://www.desy.de/++resource++desy/images/desy_logo_3c_web.svg")
     private String img;
 

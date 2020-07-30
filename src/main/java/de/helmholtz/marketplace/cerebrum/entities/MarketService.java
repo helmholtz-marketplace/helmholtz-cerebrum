@@ -3,10 +3,10 @@ package de.helmholtz.marketplace.cerebrum.entities;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.Relationship;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.List;
 
 public class MarketService {
     @Id
@@ -28,9 +28,8 @@ public class MarketService {
     private LifecycleStatus lifecycleStatus;
     @Schema(description = "Specifies the authentication which a user can use to log in to a service")
     private Authentication authentication;
-    @Schema(description = "Indicates who is the provider of the service")
-    @Relationship(type = "PROVIDED_BY")
-    private Organization organization;
+    @Schema(description = "Indicates who is providing the service")
+    private List<Organization> organisations;
 
     public Long getId() {
         return id;
@@ -96,11 +95,11 @@ public class MarketService {
         this.authentication = authentication;
     }
 
-    public Organization getOrganization() {
-        return organization;
+    public List<Organization> getOrganisations() {
+        return organisations;
     }
 
-    public void setOrganization(Organization organization) {
-        this.organization = organization;
+    public void setOrganisations(List<Organization> organisations) {
+        this.organisations = organisations;
     }
 }

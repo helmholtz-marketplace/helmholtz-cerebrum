@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,10 +35,8 @@ import javax.validation.Valid;
 import java.util.Optional;
 
 import de.helmholtz.marketplace.cerebrum.entities.MarketService;
-import de.helmholtz.marketplace.cerebrum.entities.Organization;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
 import de.helmholtz.marketplace.cerebrum.repository.MarketServiceRepository;
-import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
 
 @RestController
 @RequestMapping(path = "${spring.data.rest.base-path}/services", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -47,11 +44,9 @@ import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
 public class MarketServiceController {
 
     private final MarketServiceRepository marketServiceRepository;
-    private final OrganizationRepository organizationRepository;
 
-    public MarketServiceController(MarketServiceRepository marketServiceRepository, OrganizationRepository organizationRepository) {
+    public MarketServiceController(MarketServiceRepository marketServiceRepository) {
         this.marketServiceRepository = marketServiceRepository;
-        this.organizationRepository = organizationRepository;
     }
 
     /* get Services */
@@ -64,14 +59,10 @@ public class MarketServiceController {
     @GetMapping(path = "")
     public Iterable<MarketService> getMarketServices(
             @Parameter(description = "specify the page number")
-            @RequestParam(value = "page", defaultValue = "0") @Nullable Integer page,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             @Parameter(description = "limit the number of records returned in one page")
-            @RequestParam(value = "size", defaultValue = "20") @Nullable Integer size) {
-        if (page != null && size != null) {
-            return marketServiceRepository.findAll(PageRequest.of(page, size));
-        } else {
-            return marketServiceRepository.findAll();
-        }
+            @RequestParam(value = "size", defaultValue = "20") Integer size) {
+        return marketServiceRepository.findAll(PageRequest.of(page, size));
     }
 
     /* get single Service */
@@ -84,7 +75,7 @@ public class MarketServiceController {
     @GetMapping(path = "/{id}")
     public MarketService getMarketService(
             @Parameter(description = "ID of the service that needs to be fetched")
-            @PathVariable(required = true) Long id) {
+            @PathVariable() Long id) {
         return marketServiceRepository.findById(id).orElseThrow(() -> new CerebrumEntityNotFoundException("marketService", id));
     }
 
@@ -97,12 +88,10 @@ public class MarketServiceController {
             @ApiResponse(responseCode = "400", description = "invalid ID supplied")
     })
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public MarketService insertMarketService(
+    public MarketService createMarketService(
             @Parameter(description = "Service object that needs to be added to the marketplace",
                     required = true, schema = @Schema(implementation = MarketService.class))
             @Valid @RequestBody MarketService marketService) {
-        Optional<Organization> organization = organizationRepository.findById(marketService.getOrganization().getId());
-        organization.ifPresent(marketService::setOrganization);
         return marketServiceRepository.save(marketService);
     }
 
@@ -121,12 +110,7 @@ public class MarketServiceController {
                     required = true, schema = @Schema(implementation = MarketService.class))
             @Valid @RequestBody MarketService marketService,
             @Parameter(description = "ID of the service that needs to be updated")
-            @PathVariable(required = true) Long id) {
-        Optional<Organization> organization = organizationRepository.findById(marketService.getOrganization().getId());
-        if (organization.isPresent()) {
-            marketServiceRepository.deleteRelationshipToOrganization(id);
-            marketService.setOrganization(organization.get());
-        }
+            @PathVariable() Long id) {
         marketService.setId(id);
         return this.marketServiceRepository.save(marketService);
     }
@@ -149,13 +133,11 @@ public class MarketServiceController {
                     schema = @Schema(implementation = JsonPatch.class),
                     required = true) @Valid @RequestBody JsonPatch patch,
             @Parameter(description = "ID of the service that needs to be partially updated")
-            @PathVariable(required = true) Long id) {
+            @PathVariable() Long id) {
         return marketServiceRepository.findById(id)
                 .map(marketService -> {
                     try {
                         MarketService marketServicePatched = applyPatchToMarketService(patch, marketService);
-                        Optional<Organization> organization = organizationRepository.findById(marketServicePatched.getOrganization().getId());
-                        organization.ifPresent(marketServicePatched::setOrganization);
                         return marketServiceRepository.save(marketServicePatched);
                     } catch (JsonPatchException e) {
                         throw new ResponseStatusException(
