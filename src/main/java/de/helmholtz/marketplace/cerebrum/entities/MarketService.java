@@ -29,7 +29,7 @@ public class MarketService {
     @Schema(description = "Specifies the authentication which a user can use to log in to a service")
     private Authentication authentication;
     @Schema(description = "Indicates who is providing the service")
-    private List<Organization> organisations;
+    private List<Organization> organizations;
 
     public Long getId() {
         return id;
@@ -95,11 +95,11 @@ public class MarketService {
         this.authentication = authentication;
     }
 
-    public List<Organization> getOrganisations() {
-        return organisations;
+    public List<Organization> getOrganizations() {
+        return organizations;
     }
 
-    public void setOrganisations(List<Organization> organisations) {
-        this.organisations = organisations;
+    public void setOrganizations(List<Organization> organizations) {
+        this.organizations = organizations;
     }
 }
