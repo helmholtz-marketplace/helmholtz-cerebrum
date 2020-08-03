@@ -38,7 +38,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
     scheme = "bearer",
     flows = @OAuthFlows(
         implicit = @OAuthFlow(
-            authorizationUrl = "https://login.helmholtz-data-federation.de/oauth2-as/oauth2-authz",
+            authorizationUrl = "https://login.helmholtz.de/oauth2-as/oauth2-authz",
             scopes = {
                 @OAuthScope(name = "credentials"),
                 @OAuthScope(name = "profile"),
