@@ -2,4 +2,3 @@ run_sonar_test:
   stage: test_sonar
   image: maven:3-jdk-11
   script: "mvn -P static-code-analysis clean verify sonar:sonar"
-  allow_failure: true
