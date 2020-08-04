@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -13,10 +14,15 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.helmholtz.marketplace.cerebrum.entities.Organization;
+import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,6 +36,7 @@ public class CerebrumExceptionHandlerTest
     @Value("${cerebrum.test.oauth2-token}") private String TOKEN;
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
+    @MockBean private OrganizationRepository mockRepository;
 
     @Test
     public void whenTry_thenOK() throws Exception
@@ -46,7 +53,6 @@ public class CerebrumExceptionHandlerTest
     {
         final MvcResult response = mockMvc.perform(get(ORG_API_URI + "?page=ccc "))
                 .andExpect(status().isBadRequest())
-                .andDo(print())
                 .andReturn();
         final CerebrumApiError error = objectMapper.readValue(
                 response.getResponse().getContentAsString(), CerebrumApiError.class);
@@ -55,15 +61,63 @@ public class CerebrumExceptionHandlerTest
         assertTrue(error.getErrors().get(0).contains("should be of type java.lang.Integer"));
     }
 
+    // handleHttpMessageNotReadable
+    @Test
+    public void whenHttpMessageNotReadable_thenBadRequest() throws Exception
+    {
+        Map<String, String> patch = new HashMap<>();
+        patch.put("path", "/abbreviation");
+        patch.put("value", "KI3T");
+
+        final MvcResult response = mockMvc.perform(
+                patch(ORG_API_URI + "/org-5189a7bc-d630-11ea-87d0-0242ac130003")
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .accept("application/json")
+                        .contentType("application/json-patch+json").content(objectMapper.writeValueAsString(patch)))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+        final CerebrumApiError error = objectMapper.readValue(
+                response.getResponse().getContentAsString(), CerebrumApiError.class);
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatus());
+        assertEquals(1, error.getErrors().size());
+        assertTrue(error.getErrors().get(0).contains("Malformed JSON or JSON+PATCH request"));
+    }
+
+    // handleInvalidUuid
+    @Test
+    public void whenInvalidUuid_thenBadRequest() throws Exception
+    {
+        String badUuid = "abc";
+        final MvcResult response = mockMvc.perform(
+                get(ORG_API_URI + "/" + badUuid))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+        final CerebrumApiError error = objectMapper.readValue(
+                response.getResponse().getContentAsString(), CerebrumApiError.class);
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatus());
+        assertEquals(1, error.getErrors().size());
+        assertTrue(error.getMessage()
+                .contains(badUuid + " is an invalid uuid"));
+    }
+
     // handleEntityNotFound
     @Test
     public void whenEntityNotFound_thenNotFound() throws Exception
     {
-        String nonExistingUuid = "org-5189a7bc-d630-11ea-87d0-0242ac130003";
+        String nonExistingUuid = "org-5189a7bc-d630-11ea-87d0-0242ac130004";
+        Organization kit = new Organization();
+        kit.setName("Karlsruher Institut fuer Technologie");
+        kit.setAbbreviation("KIT");
+        kit.setUrl("http://www.kit.edu/");
+        kit.setImg("http://www.kit.edu/img/intern/kit_logo_V2_de.svg");
+        kit.setUuid("org-5189a7bc-d630-11ea-87d0-0242ac130003");
+
+        given(mockRepository.findByUuid("org-5189a7bc-d630-11ea-87d0-0242ac130003"))
+                .willReturn(java.util.Optional.of(kit));
+
         final MvcResult response = mockMvc.perform(
                 get(ORG_API_URI + "/" + nonExistingUuid))
                 .andExpect(status().isNotFound())
-                .andDo(print())
                 .andReturn();
         final CerebrumApiError error = objectMapper.readValue(
                 response.getResponse().getContentAsString(), CerebrumApiError.class);
@@ -85,7 +139,6 @@ public class CerebrumExceptionHandlerTest
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + TOKEN)
                 .content(objectMapper.writeValueAsString(organisation)))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andReturn();
         final CerebrumApiError error = objectMapper.readValue(
@@ -102,7 +155,6 @@ public class CerebrumExceptionHandlerTest
         final MvcResult response = mockMvc.perform(delete(ORG_API_URI)
                 .header("Authorization", "Bearer " + TOKEN))
                 .andExpect(status().isMethodNotAllowed())
-                .andDo(print())
                 .andReturn();
         final CerebrumApiError error = objectMapper.readValue(
                 response.getResponse().getContentAsString(), CerebrumApiError.class);
@@ -119,7 +171,6 @@ public class CerebrumExceptionHandlerTest
         final MvcResult response = mockMvc.perform(delete(API_URI_PREFIX + "/xx")
                 .header("Authorization", "Bearer " + TOKEN))
                 .andExpect(status().isNotFound())
-                .andDo(print())
                 .andReturn();
         final CerebrumApiError error = objectMapper.readValue(
                 response.getResponse().getContentAsString(), CerebrumApiError.class);
@@ -142,7 +193,6 @@ public class CerebrumExceptionHandlerTest
                 .header("Authorization", "Bearer " + TOKEN)
                 .content(objectMapper.writeValueAsString(organisation)))
                 .andExpect(status().isUnsupportedMediaType())
-                .andDo(print())
                 .andReturn();
         final CerebrumApiError error = objectMapper.readValue(
                 response.getResponse().getContentAsString(), CerebrumApiError.class);
@@ -157,7 +207,6 @@ public class CerebrumExceptionHandlerTest
     {
         final MvcResult response = mockMvc.perform(get(ORG_API_URI)
                 .accept("application/xml"))
-                .andDo(print())
                 .andExpect(status().isNotAcceptable())
                 .andReturn();
         assertEquals(406, response.getResponse().getStatus());

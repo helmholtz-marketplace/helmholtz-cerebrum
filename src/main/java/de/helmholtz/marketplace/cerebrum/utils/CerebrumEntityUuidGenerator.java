@@ -67,10 +67,10 @@ public class CerebrumEntityUuidGenerator implements IdStrategy
     public static Boolean isValid(String id)
     {
         try {
-            PrefixEnum.checkPrefixValidity(id.split("")[0]);
+            PrefixEnum.checkPrefixValidity(id.split("-")[0]);
             UUID uuid = UUID.fromString(id.substring(id.indexOf('-') + 1));
             return uuid.version() > 0;
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | NullPointerException ex) {
             return false;
         }
     }

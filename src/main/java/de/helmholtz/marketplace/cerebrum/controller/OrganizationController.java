@@ -3,7 +3,9 @@ package de.helmholtz.marketplace.cerebrum.controller;
 import de.helmholtz.marketplace.cerebrum.entities.Organization;
 import de.helmholtz.marketplace.cerebrum.errorhandling.CerebrumApiError;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
+import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumInvalidUuidException;
 import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
+import de.helmholtz.marketplace.cerebrum.utils.CerebrumEntityUuidGenerator;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,12 +39,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestController
+@Validated
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE,
         path = "${spring.data.rest.base-path}/organizations")
 @Tag(name = "organizations", description = "The Organization API")
@@ -66,9 +75,9 @@ public class OrganizationController {
     @GetMapping(path = "")
     public Iterable<Organization> getOrganizations(
             @Parameter(description = "specify the page number")
-            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "page", defaultValue = "0") @Min(0) Integer page,
             @Parameter(description = "limit the number of records returned in one page")
-            @RequestParam(value = "size", defaultValue = "20") Integer size,
+            @RequestParam(value = "size", defaultValue = "20") @Min(1) Integer size,
             @Parameter(description = "sort the fetched data in either ascending (asc) " +
                     "or descending (desc) according to one or more of the organisation " +
                     "properties. Eg. to sort the list in ascending order base on the " +
@@ -97,8 +106,11 @@ public class OrganizationController {
             @Parameter(description = "ID of the organization that needs to be fetched")
             @PathVariable(name = "uuid") String uuid)
     {
-        return organizationRepository.findByUuid(uuid)
-                .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", uuid));
+        if (Boolean.TRUE.equals(CerebrumEntityUuidGenerator.isValid(uuid))) {
+            return organizationRepository.findByUuid(uuid)
+                    .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", uuid));
+        }
+        else throw new CerebrumInvalidUuidException(uuid);
     }
 
     /* create Organization */
@@ -113,11 +125,19 @@ public class OrganizationController {
             @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content())
     })
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Organization createOrganization(
+    public ResponseEntity<Organization> createOrganization(
             @Parameter(description = "organization object that needs to be added to the marketplace",
                     required = true, schema = @Schema(implementation = Organization.class))
-            @Valid @RequestBody Organization organization) {
-        return organizationRepository.save(organization);
+            @Valid @RequestBody Organization organization, UriComponentsBuilder uriComponentsBuilder)
+    {
+        Organization createdOrg = organizationRepository.save(organization);
+        UriComponents uriComponents =
+                uriComponentsBuilder.path("/api/v0/organizations/{id}").buildAndExpand(createdOrg.getUuid());
+        URI location = uriComponents.toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(createdOrg);
     }
 
     /* update Organization */
@@ -135,25 +155,38 @@ public class OrganizationController {
             @ApiResponse(responseCode = "401", description = "unauthorised", content = @Content())
     })
     @PutMapping(path = "/{uuid}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Organization updateOrganization(
+    public ResponseEntity<Organization> updateOrganization(
             @Parameter(description="Organization to update or replace. This cannot be null or empty.",
                     schema=@Schema(implementation = Organization.class),
                     required=true) @Valid @RequestBody Organization newOrganization,
             @Parameter(description = "Unique identifier of the organization that needs to be updated")
-            @PathVariable(name = "uuid") String uuid)
+            @PathVariable(name = "uuid") String uuid, UriComponentsBuilder uriComponentsBuilder)
     {
-        return organizationRepository.findByUuid(uuid)
-                .map(organization -> {
-                    organization.setAbbreviation(newOrganization.getAbbreviation());
-                    organization.setName(newOrganization.getName());
-                    organization.setImg(newOrganization.getImg());
-                    organization.setUrl(newOrganization.getUrl());
-                    return organizationRepository.save(organization);
-                })
-                .orElseGet(() -> {
-                    newOrganization.setUuid(uuid);
-                    return organizationRepository.save(newOrganization);
-                });
+        if (Boolean.TRUE.equals(CerebrumEntityUuidGenerator.isValid(uuid))) {
+            AtomicBoolean isCreated = new AtomicBoolean(false);
+            Organization org = organizationRepository.findByUuid(uuid)
+                    .map(organization -> {
+                        organization.setAbbreviation(newOrganization.getAbbreviation());
+                        organization.setName(newOrganization.getName());
+                        organization.setImg(newOrganization.getImg());
+                        organization.setUrl(newOrganization.getUrl());
+                        return organizationRepository.save(organization);
+                    })
+                    .orElseGet(() -> {
+                        newOrganization.setUuid(uuid);
+                        isCreated.set(true);
+                        return organizationRepository.save(newOrganization);
+                    });
+
+            if (isCreated.get()) {
+                UriComponents uriComponents =
+                        uriComponentsBuilder.path("/api/v0/organizations/{id}").buildAndExpand(org.getUuid());
+                URI location = uriComponents.toUri();
+                return ResponseEntity.created(location).body(org);
+            }
+            return ResponseEntity.ok().body(org);
+        }
+        else throw new CerebrumInvalidUuidException(uuid);
     }
 
     /* JSON PATCH Organization */
@@ -172,29 +205,33 @@ public class OrganizationController {
                     content = @Content(schema = @Schema(implementation = CerebrumApiError.class)))
     })
     @PatchMapping(path = "/{uuid}", consumes = "application/json-patch+json")
-    public Organization partialUpdateOrganization(
+    public ResponseEntity<Organization> partialUpdateOrganization(
             @Parameter(description = "JSON Patch document structured as a JSON " +
                     "array of objects where each object contains one of the six " +
                     "JSON Patch operations: add, remove, replace, move, copy, and test",
                     schema = @Schema(implementation = JsonPatch.class),
                     required = true) @Valid @RequestBody JsonPatch patch,
             @Parameter(description = "ID of the organization that needs to be partially updated")
-            @PathVariable(required = true) String uuid)
+            @PathVariable(name = "uuid") String uuid)
     {
-        return organizationRepository.findByUuid(uuid)
-                .map(organization -> {
-                    try {
-                        Organization organizationPatched = applyPatchToOrganization(patch, organization);
-                        return organizationRepository.save(organizationPatched);
-                    } catch (JsonPatchException e) {
-                        throw new ResponseStatusException(
-                                HttpStatus.BAD_REQUEST, "invalid id or json patch body", e);
-                    } catch (JsonProcessingException e) {
-                        throw new ResponseStatusException(
-                                HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", e);
-                    }
-                })
-                .orElseThrow(()-> new CerebrumEntityNotFoundException("organization", uuid));
+        if (Boolean.TRUE.equals(CerebrumEntityUuidGenerator.isValid(uuid))) {
+            Organization partialUpdateOrganisation = organizationRepository.findByUuid(uuid)
+                    .map(organization -> {
+                        try {
+                            Organization organizationPatched = applyPatchToOrganization(patch, organization);
+                            return organizationRepository.save(organizationPatched);
+                        } catch (JsonPatchException e) {
+                            throw new ResponseStatusException(
+                                    HttpStatus.BAD_REQUEST, "json patch body", e);
+                        } catch (JsonProcessingException e) {
+                            throw new ResponseStatusException(
+                                    HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", e);
+                        }
+                    })
+                    .orElseThrow(() -> new CerebrumEntityNotFoundException("organization", uuid));
+            return ResponseEntity.ok().body(partialUpdateOrganisation);
+        }
+        else throw new CerebrumInvalidUuidException(uuid);
     }
 
     /* delete Organization */

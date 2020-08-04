@@ -11,5 +11,5 @@ public interface OrganizationRepository
 {
     Optional<Organization> findByUuid(String uuid);
 
-    void deleteByUuid(String id);
+    Long deleteByUuid(String id);
 }

@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
@@ -30,10 +30,13 @@ import java.util.Objects;
 import java.util.Set;
 
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
+import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumInvalidUuidException;
 
 @ControllerAdvice
 public class CerebrumExceptionHandler extends ResponseEntityExceptionHandler
 {
+    private static final String REGEX_VALUE = "^.|.$";
+
     // modified version of: https://www.baeldung.com/global-error-handler-in-a-spring-rest-api
     /**
      * code: 400
@@ -170,6 +173,36 @@ public class CerebrumExceptionHandler extends ResponseEntityExceptionHandler
                 cerebrumApiError, new HttpHeaders(), cerebrumApiError.getStatus());
     }
 
+    // 400
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            final HttpMessageNotReadableException ex,
+            final HttpHeaders headers,
+            final HttpStatus status,
+            final WebRequest request)
+    {
+        logger.info(ex.getClass().getName());
+        final String error = "Malformed JSON or JSON+PATCH request";
+        final CerebrumApiError cerebrumApiError =
+                new CerebrumApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
+        return new ResponseEntity<>(
+                cerebrumApiError, new HttpHeaders(), cerebrumApiError.getStatus());
+    }
+
+    // 400
+    @ExceptionHandler({CerebrumInvalidUuidException.class})
+    private ResponseEntity<Object> handleInvalidUuid(
+            final CerebrumInvalidUuidException ex,
+            WebRequest request)
+    {
+        final String error = "Invalid uuid";
+
+        final CerebrumApiError cerebrumApiError =
+                new CerebrumApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
+        return new ResponseEntity<>(
+                cerebrumApiError, new HttpHeaders(), cerebrumApiError.getStatus());
+    }
+
     // 404
     @ExceptionHandler({CerebrumEntityNotFoundException.class})
     private ResponseEntity<Object> handleEntityNotFound(
@@ -229,7 +262,7 @@ public class CerebrumExceptionHandler extends ResponseEntityExceptionHandler
             } else if (size > 1) {
                 Set<HttpMethod> methods = ex.getSupportedHttpMethods();
                 builder.append("Supported media methods are ")
-                        .append(methods.toString().replaceAll("^.|.$", ""));
+                        .append(methods.toString().replaceAll(REGEX_VALUE, ""));
 
                 builder.replace(
                         builder.lastIndexOf(", "),
@@ -270,7 +303,7 @@ public class CerebrumExceptionHandler extends ResponseEntityExceptionHandler
         } else if (size > 1) {
             List<MediaType> mediaTypes = ex.getSupportedMediaTypes();
             builder.append("Acceptable MIME types are ")
-                    .append(mediaTypes.toString().replaceAll("^.|.$", ""));
+                    .append(mediaTypes.toString().replaceAll(REGEX_VALUE, ""));
 
             builder.replace(
                     builder.lastIndexOf(", "),
@@ -310,7 +343,7 @@ public class CerebrumExceptionHandler extends ResponseEntityExceptionHandler
         } else if (size > 1) {
             List<MediaType> mediaTypes = ex.getSupportedMediaTypes();
             builder.append("Supported media types are ")
-                    .append(mediaTypes.toString().replaceAll("^.|.$", ""));
+                    .append(mediaTypes.toString().replaceAll(REGEX_VALUE, ""));
 
             builder.replace(
                     builder.lastIndexOf(", "),
