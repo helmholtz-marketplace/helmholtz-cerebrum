@@ -45,7 +45,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "${spring.data.rest.base-path}/users")
+@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE,
+        path = "${spring.data.rest.base-path}/users")
 @Tag(name = "users", description = "The User API")
 public class MarketUserController {
     private final WebClient authorisationServer;
@@ -131,7 +132,8 @@ public class MarketUserController {
 
     /* create user */
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "add a new user", security = @SecurityRequirement(name = "hdf-aai"))
+    @Operation(summary = "add a new user",
+            security = @SecurityRequirement(name = "hdf-aai"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "user created",
                     content = @Content(schema = @Schema(implementation = MarketUser.class))),
@@ -166,11 +168,23 @@ public class MarketUserController {
             @Parameter(
                     description = "User to update or replace. This cannot be null or empty.",
                     schema = @Schema(implementation = MarketUser.class),
-                    required = true) @Valid @RequestBody MarketUser marketUser,
+                    required = true) @Valid @RequestBody MarketUser newMarketUser,
             @Parameter(description = "UUID of the user that needs to be updated")
             @PathVariable() String uuid) {
-        marketUser.setUuid(uuid);
-        return this.marketUserRepository.save(marketUser);
+
+        return marketUserRepository.findByUuid(uuid)
+                .map(marketUser -> {
+                    marketUser.setEmail(newMarketUser.getEmail());
+                    marketUser.setFirstName(newMarketUser.getFirstName());
+                    marketUser.setLastName(newMarketUser.getLastName());
+                    marketUser.setScreenName(newMarketUser.getScreenName());
+                    marketUser.setSub(newMarketUser.getSub());
+                    return marketUserRepository.save(marketUser);
+                })
+                .orElseGet(() -> {
+                    newMarketUser.setUuid(uuid);
+                    return marketUserRepository.save(newMarketUser);
+                });
     }
 
     /* JSON PATCH user */
@@ -201,7 +215,12 @@ public class MarketUserController {
                 .map(marketUser -> {
                     try {
                         MarketUser marketUserPatched = applyPatchToMarketUser(patch, marketUser);
-                        return marketUserRepository.save(marketUserPatched);
+                        marketUser.setEmail(marketUserPatched.getEmail());
+                        marketUser.setFirstName(marketUserPatched.getFirstName());
+                        marketUser.setLastName(marketUserPatched.getLastName());
+                        marketUser.setScreenName(marketUserPatched.getScreenName());
+                        marketUser.setSub(marketUserPatched.getSub());
+                        return marketUserRepository.save(marketUser);
                     } catch (JsonPatchException e) {
                         throw new ResponseStatusException(
                                 HttpStatus.BAD_REQUEST, "invalid UUID or json patch body", e);
