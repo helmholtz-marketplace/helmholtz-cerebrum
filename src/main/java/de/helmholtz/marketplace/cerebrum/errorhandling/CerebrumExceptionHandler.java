@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
@@ -261,14 +262,14 @@ public class CerebrumExceptionHandler extends ResponseEntityExceptionHandler
         logger.info(ex.getClass().getName());
         StringBuilder builder = new StringBuilder();
         builder.append(request.getHeader("Accept"));
-        builder.append(" MIME type is not supported. ");
+        builder.append(" MIME type is not acceptable. ");
         int size = ex.getSupportedMediaTypes().size();
         if (size == 1) {
-            builder.append("Supported MIME type is ")
+            builder.append("Acceptable MIME type is ")
                     .append(ex.getSupportedMediaTypes().iterator().next());
         } else if (size > 1) {
             List<MediaType> mediaTypes = ex.getSupportedMediaTypes();
-            builder.append("Supported MIME types are ")
+            builder.append("Acceptable MIME types are ")
                     .append(mediaTypes.toString().replaceAll("^.|.$", ""));
 
             builder.replace(
@@ -279,7 +280,7 @@ public class CerebrumExceptionHandler extends ResponseEntityExceptionHandler
         }
         final CerebrumApiError cerebrumApiError =
                 new CerebrumApiError(
-                        HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                        HttpStatus.NOT_ACCEPTABLE,
                         ex.getLocalizedMessage(),
                         builder.toString());
         return new ResponseEntity<>(

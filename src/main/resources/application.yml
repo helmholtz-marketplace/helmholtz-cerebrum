@@ -1,4 +1,6 @@
 cerebrum:
+  test:
+    oauth2-token: ${token:notoken}
   version: @project.version@
   allowed:
     client:
