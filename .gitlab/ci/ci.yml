@@ -5,4 +5,4 @@ ci_build:
         - merge_requests
     stage: build
     image: maven:3-jdk-11
-    script: "mvn -Dtoken=$AAI_TOKEN -B package --file pom.xml"
+    script: "mvn -B package --file pom.xml"
