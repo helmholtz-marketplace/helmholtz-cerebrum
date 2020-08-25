@@ -14,13 +14,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @Configuration
 public class CerebrumConfig
 {
-    /**
-     * FIXME: This is workaround  for the Internal Server Error
-     * org.springframework.web.util.NestedServletException:
-     * Request processing failed; nested exception is
-     * java.lang.NullPointerException: Missing SslContextFactory
-     */
-    private final SslContextFactory ssl = new SslContextFactory();
+    private final SslContextFactory.Client ssl = new SslContextFactory.Client();
     private final HttpClient httpClient = new HttpClient(ssl);
     ClientHttpConnector clientConnector = new JettyClientHttpConnector(httpClient);
 

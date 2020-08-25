@@ -53,7 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(value = Lifecycle.PER_CLASS)
-public class OrganizationControllerTest
+class OrganizationControllerTest
 {
     private static final String API_URI_PREFIX = "/api/v0";
     private static final String ORG_API_URI = API_URI_PREFIX + "/organizations";

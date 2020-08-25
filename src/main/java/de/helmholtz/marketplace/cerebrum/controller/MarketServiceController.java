@@ -1,8 +1,6 @@
 package de.helmholtz.marketplace.cerebrum.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,13 +31,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import de.helmholtz.marketplace.cerebrum.entities.MarketService;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
 import de.helmholtz.marketplace.cerebrum.repository.MarketServiceRepository;
+import de.helmholtz.marketplace.cerebrum.utils.CerebrumControllerUtilities;
 
 @RestController
 @RequestMapping(path = "${spring.data.rest.base-path}/services", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -72,7 +69,7 @@ public class MarketServiceController {
             @RequestParam(value = "sort", defaultValue = "name.asc") List<String> sorts)
     {
         return marketServiceRepository.findAll(
-                PageRequest.of(page, size, Sort.by(getOrders(sorts))));
+                PageRequest.of(page, size, Sort.by(CerebrumControllerUtilities.getOrders(sorts))));
     }
 
     /* get single Service */
@@ -153,7 +150,8 @@ public class MarketServiceController {
         return marketServiceRepository.findByUuid(uuid)
                 .map(marketService -> {
                     try {
-                        MarketService marketServicePatched = applyPatchToMarketService(patch, marketService);
+                        MarketService marketServicePatched =
+                                CerebrumControllerUtilities.applyPatch(patch, marketService, MarketService.class);
                         return marketServiceRepository.save(marketServicePatched);
                     } catch (JsonPatchException e) {
                         throw new ResponseStatusException(
@@ -182,34 +180,5 @@ public class MarketServiceController {
     {
         marketServiceRepository.deleteByUuid(uuid);
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * TODO: util methods - it might be better to factor these out
-     */
-    private MarketService applyPatchToMarketService(
-            JsonPatch patch,
-            MarketService targetMarketService) throws JsonPatchException, JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode patched = patch.apply(objectMapper.convertValue(targetMarketService, JsonNode.class));
-        return objectMapper.treeToValue(patched, MarketService.class);
-    }
-
-    private List<Sort.Order> getOrders(List<String> sorts)
-    {
-        List<Sort.Order> orders = new ArrayList<>();
-        for (String sort: sorts) {
-            if (sort.contains(".")) {
-                String[] order = sort.split("\\.");
-                orders.add(new Sort.Order(
-                        order[1].equals("asc") ?
-                                Sort.Direction.ASC :
-                                Sort.Direction.DESC, order[0])
-                );
-            } else {
-                orders.add(new Sort.Order(Sort.Direction.ASC, sort));
-            }
-        }
-        return orders;
     }
 }

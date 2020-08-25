@@ -11,5 +11,6 @@ public interface OrganizationRepository
 {
     Optional<Organization> findByUuid(String uuid);
 
+    @SuppressWarnings("UnusedReturnValue")
     Long deleteByUuid(String id);
 }

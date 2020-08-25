@@ -10,6 +10,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -32,7 +33,7 @@ public class CerebrumSecurityConfig extends WebSecurityConfigurerAdapter
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("${cerebrum.allowed.client.origins}"));
+        configuration.setAllowedOrigins(Collections.singletonList("${cerebrum.allowed.client.origins}"));
         configuration.setAllowedMethods(Arrays.asList("GET","DELETE","PUT","POST"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

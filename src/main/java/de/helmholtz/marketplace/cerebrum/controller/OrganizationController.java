@@ -5,6 +5,7 @@ import de.helmholtz.marketplace.cerebrum.errorhandling.CerebrumApiError;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumInvalidUuidException;
 import de.helmholtz.marketplace.cerebrum.repository.OrganizationRepository;
+import de.helmholtz.marketplace.cerebrum.utils.CerebrumControllerUtilities;
 import de.helmholtz.marketplace.cerebrum.utils.CerebrumEntityUuidGenerator;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,8 +18,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.data.domain.PageRequest;
@@ -45,7 +44,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -85,7 +83,7 @@ public class OrganizationController {
             @RequestParam(value = "sort", defaultValue = "name.asc") List<String> sorts)
     {
         return organizationRepository.findAll(
-                PageRequest.of(page, size, Sort.by(getOrders(sorts))));
+                PageRequest.of(page, size, Sort.by(CerebrumControllerUtilities.getOrders(sorts))));
     }
 
     /* get Organization */
@@ -218,7 +216,8 @@ public class OrganizationController {
             Organization partialUpdateOrganisation = organizationRepository.findByUuid(uuid)
                     .map(organization -> {
                         try {
-                            Organization organizationPatched = applyPatchToOrganization(patch, organization);
+                            Organization organizationPatched =
+                                    CerebrumControllerUtilities.applyPatch(patch, organization, Organization.class);
                             return organizationRepository.save(organizationPatched);
                         } catch (JsonPatchException e) {
                             throw new ResponseStatusException(
@@ -252,34 +251,5 @@ public class OrganizationController {
     {
         organizationRepository.deleteByUuid(uuid);
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * TODO: util methods - it might be better to factor these out
-     */
-    private Organization applyPatchToOrganization(
-            JsonPatch patch,
-            Organization targetOrganization) throws JsonPatchException, JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode patched = patch.apply(objectMapper.convertValue(targetOrganization, JsonNode.class));
-        return objectMapper.treeToValue(patched, Organization.class);
-    }
-
-    private List<Sort.Order> getOrders(List<String> sorts)
-    {
-        List<Sort.Order> orders = new ArrayList<>();
-        for (String sort: sorts) {
-            if (sort.contains(".")) {
-                String[] order = sort.split("\\.");
-                orders.add(new Sort.Order(
-                        order[1].equals("asc") ?
-                                Sort.Direction.ASC :
-                                Sort.Direction.DESC, order[0])
-                );
-            } else {
-                orders.add(new Sort.Order(Sort.Direction.ASC, sort));
-            }
-        }
-        return orders;
     }
 }

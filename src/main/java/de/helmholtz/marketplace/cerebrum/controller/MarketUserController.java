@@ -7,8 +7,8 @@ import de.helmholtz.marketplace.cerebrum.entities.MarketUser;
 import de.helmholtz.marketplace.cerebrum.errorhandling.CerebrumApiError;
 import de.helmholtz.marketplace.cerebrum.errorhandling.exception.CerebrumEntityNotFoundException;
 import de.helmholtz.marketplace.cerebrum.repository.MarketUserRepository;
+import de.helmholtz.marketplace.cerebrum.utils.CerebrumControllerUtilities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,12 +80,13 @@ public class MarketUserController {
     public JsonNode whoami() {
         return this.authorisationServer
                 .get()
-                .uri("https://login.helmholtz-data-federation.de/oauth2/userinfo")
+                .uri("https://login.helmholtz.de/oauth2/userinfo")
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .block();
     }
 
+    @SuppressWarnings("unused")
     public boolean isSomebody(JwtAuthenticationToken token) {
         if (Objects.isNull(token)) return false;
         String name = marketUserRepository.findBySub((String) token.getTokenAttributes().get("sub")).getFirstName();
@@ -214,7 +215,8 @@ public class MarketUserController {
         return marketUserRepository.findByUuid(uuid)
                 .map(marketUser -> {
                     try {
-                        MarketUser marketUserPatched = applyPatchToMarketUser(patch, marketUser);
+                        MarketUser marketUserPatched =
+                                CerebrumControllerUtilities.applyPatch(patch, marketUser, MarketUser.class);
                         marketUser.setEmail(marketUserPatched.getEmail());
                         marketUser.setFirstName(marketUserPatched.getFirstName());
                         marketUser.setLastName(marketUserPatched.getLastName());
@@ -255,14 +257,4 @@ public class MarketUserController {
             throw new CerebrumEntityNotFoundException("user", uuid);
         }
     }
-
-    /* for MarketUser - PATCH */
-    private MarketUser applyPatchToMarketUser(
-            JsonPatch patch,
-            MarketUser targetMarketUser) throws JsonPatchException, JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode patched = patch.apply(objectMapper.convertValue(targetMarketUser, JsonNode.class));
-        return objectMapper.treeToValue(patched, MarketUser.class);
-    }
-
 }

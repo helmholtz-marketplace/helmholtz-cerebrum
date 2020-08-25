@@ -10,5 +10,6 @@ public interface MarketServiceRepository extends PagingAndSortingRepository<Mark
 {
     Optional<MarketService> findByUuid(String uuid);
 
-    void deleteByUuid(String id);
+    @SuppressWarnings("UnusedReturnValue")
+    Long deleteByUuid(String id);
 }

@@ -10,7 +10,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 public class HelmholtzCerebrumApplication
 {
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         SpringApplication.run(HelmholtzCerebrumApplication.class, args);
     }
 }

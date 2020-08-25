@@ -33,8 +33,7 @@ public class MarketUser
     @Size(max = 100)
     private String lastName;
 
-    @Schema(description = "User chosen name to represent him or herself",
-            example = "pm", required = false)
+    @Schema(description = "User chosen name to represent him or herself", example = "pm")
     @Size(max = 20)
     private String screenName;
 

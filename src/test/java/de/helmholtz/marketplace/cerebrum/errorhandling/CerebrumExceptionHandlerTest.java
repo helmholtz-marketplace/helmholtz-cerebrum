@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class CerebrumExceptionHandlerTest
+class CerebrumExceptionHandlerTest
 {
     private static final String API_URI_PREFIX = "/api/v0";
     private static final String ORG_API_URI = API_URI_PREFIX + "/organizations";
@@ -38,8 +38,8 @@ public class CerebrumExceptionHandlerTest
     @Autowired private ObjectMapper objectMapper;
     @MockBean private OrganizationRepository mockRepository;
 
-    @Test
-    public void whenTry_thenOK() throws Exception
+    @Test void
+    whenTry_thenOK() throws Exception
     {
         final MvcResult response = mockMvc.perform(get(API_URI_PREFIX))
                 .andExpect(status().isOk())
@@ -48,8 +48,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     // handleMethodArgumentTypeMismatch
-    @Test
-    public void whenMethodArgumentMismatch_thenBadRequest() throws Exception
+    @Test void
+    whenMethodArgumentMismatch_thenBadRequest() throws Exception
     {
         final MvcResult response = mockMvc.perform(get(ORG_API_URI + "?page=ccc "))
                 .andExpect(status().isBadRequest())
@@ -62,8 +62,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     // handleHttpMessageNotReadable
-    @Test
-    public void whenHttpMessageNotReadable_thenBadRequest() throws Exception
+    @Test void
+    whenHttpMessageNotReadable_thenBadRequest() throws Exception
     {
         Map<String, String> patch = new HashMap<>();
         patch.put("path", "/abbreviation");
@@ -84,8 +84,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     // handleInvalidUuid
-    @Test
-    public void whenInvalidUuid_thenBadRequest() throws Exception
+    @Test void
+    whenInvalidUuid_thenBadRequest() throws Exception
     {
         String badUuid = "abc";
         final MvcResult response = mockMvc.perform(
@@ -101,8 +101,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     // handleEntityNotFound
-    @Test
-    public void whenEntityNotFound_thenNotFound() throws Exception
+    @Test void
+    whenEntityNotFound_thenNotFound() throws Exception
     {
         String nonExistingUuid = "org-5189a7bc-d630-11ea-87d0-0242ac130004";
         Organization kit = new Organization();
@@ -128,8 +128,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     // handleMethodArgumentNotValid
-    @Test
-    public void whenValidInput_thenBadRequest() throws Exception
+    @Test void
+    whenValidInput_thenBadRequest() throws Exception
     {
         Map<String, Object> organisation = new HashMap<>();
         organisation.put("organisationName", "Forschungszentrum Jülich");
@@ -149,8 +149,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     //handleHttpRequestMethodNotSupported
-    @Test
-    public void whenHttpRequestMethodNotSupported_thenMethodNotAllowed() throws Exception
+    @Test void
+    whenHttpRequestMethodNotSupported_thenMethodNotAllowed() throws Exception
     {
         final MvcResult response = mockMvc.perform(delete(ORG_API_URI)
                 .header("Authorization", "Bearer " + TOKEN))
@@ -165,8 +165,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     // handleNoHandlerFoundException
-    @Test
-    public void whenNoHandlerForHttpRequest_thenNotFound() throws Exception
+    @Test void
+    whenNoHandlerForHttpRequest_thenNotFound() throws Exception
     {
         final MvcResult response = mockMvc.perform(delete(API_URI_PREFIX + "/xx")
                 .header("Authorization", "Bearer " + TOKEN))
@@ -181,8 +181,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     // handleHttpMediaTypeNotSupported
-    @Test
-    public void whenSendInvalidHttpMediaType_thenUnsupportedMediaType() throws Exception
+    @Test void
+    whenSendInvalidHttpMediaType_thenUnsupportedMediaType() throws Exception
     {
         Map<String, Object> organisation = new HashMap<>();
         organisation.put("organisationName", "Forschungszentrum Jülich");
@@ -202,8 +202,8 @@ public class CerebrumExceptionHandlerTest
     }
 
     // handleHttpMediaTypeNotAcceptable
-    @Test
-    public void whenSendInvalidHttpMediaType_thenNotAcceptableMediaType() throws Exception
+    @Test void
+    whenSendInvalidHttpMediaType_thenNotAcceptableMediaType() throws Exception
     {
         final MvcResult response = mockMvc.perform(get(ORG_API_URI)
                 .accept("application/xml"))
